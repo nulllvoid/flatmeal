@@ -1,0 +1,125 @@
+// One-off/dev seed script: reads /data/recipes-template.csv and
+// /data/ingredients-template.csv (source of truth for recipe data entry,
+// see CLAUDE.md) and upserts them into the recipes / recipe_ingredients
+// tables via the service role.
+//
+// Run with: npx tsx supabase/seed/seed-recipes.ts
+// Requires env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+//
+// TODO: swap the hand-rolled CSV parsing below for a real CSV parser
+// (e.g. `csv-parse`) once recipe data grows past the ~5-row templates —
+// it does not handle quoted commas/newlines within fields correctly.
+
+import { createClient } from '@supabase/supabase-js';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const DATA_DIR = join(__dirname, '..', '..', 'data');
+
+function parseCsv(text: string): Record<string, string>[] {
+  const [headerLine, ...lines] = text.trim().split('\n');
+  const headers = headerLine.split(',');
+  return lines
+    .filter((line) => line.trim().length > 0)
+    .map((line) => {
+      const cells = splitCsvLine(line);
+      return Object.fromEntries(headers.map((h, i) => [h, cells[i] ?? '']));
+    });
+}
+
+// Minimal quoted-field CSV line splitter — handles the `"a,b"` case used by
+// recipes-template.csv's seasons/instructions columns, not full RFC 4180.
+function splitCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      cells.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+async function main() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY before running this script.');
+  }
+  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+  const recipesCsv = parseCsv(readFileSync(join(DATA_DIR, 'recipes-template.csv'), 'utf-8'));
+  const ingredientsCsv = parseCsv(readFileSync(join(DATA_DIR, 'ingredients-template.csv'), 'utf-8'));
+
+  for (const row of recipesCsv) {
+    const { error } = await supabase.from('recipes').upsert(
+      {
+        slug: row.slug,
+        name: row.name,
+        cuisine: row.cuisine,
+        base: row.base,
+        diet_class: row.diet_class,
+        jain_ok: row.jain_ok === 'true',
+        allergens: row.allergens ? row.allergens.split(',').filter(Boolean) : [],
+        seasons: row.seasons ? row.seasons.split(',').filter(Boolean) : ['kharif', 'rabi', 'zaid'],
+        instructions_en: row.instructions_en,
+        image_path: row.image_path || null,
+      },
+      { onConflict: 'slug' }
+    );
+    if (error) throw new Error(`recipe ${row.slug}: ${error.message}`);
+  }
+  console.log(`Seeded ${recipesCsv.length} recipes.`);
+
+  const { data: recipeRows, error: fetchError } = await supabase.from('recipes').select('id, slug');
+  if (fetchError) throw fetchError;
+  const slugToId = new Map((recipeRows ?? []).map((r) => [r.slug, r.id]));
+
+  // recipe_ingredients has no natural unique key to upsert on, so re-running
+  // this script would duplicate rows — clear existing ingredients for every
+  // recipe touched by this CSV first, then insert fresh.
+  const touchedRecipeIds = [...new Set(ingredientsCsv.map((row) => slugToId.get(row.recipe_slug)).filter(Boolean))];
+  if (touchedRecipeIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('recipe_ingredients')
+      .delete()
+      .in('recipe_id', touchedRecipeIds as string[]);
+    if (deleteError) throw deleteError;
+  }
+
+  let ingredientCount = 0;
+  for (const row of ingredientsCsv) {
+    const recipeId = slugToId.get(row.recipe_slug);
+    if (!recipeId) {
+      console.warn(`Skipping ingredient row: unknown recipe_slug "${row.recipe_slug}"`);
+      continue;
+    }
+    const { error } = await supabase.from('recipe_ingredients').insert({
+      recipe_id: recipeId,
+      name_en: row.name_en,
+      name_hi: row.name_hi || null,
+      name_kn: row.name_kn || null,
+      qty_per_person: Number(row.qty_per_person),
+      unit: row.unit,
+      category: row.category,
+      is_staple: row.is_staple === 'true',
+      sort_order: Number(row.sort_order || 0),
+    });
+    if (error) throw new Error(`ingredient for ${row.recipe_slug}/${row.name_en}: ${error.message}`);
+    ingredientCount += 1;
+  }
+  console.log(`Seeded ${ingredientCount} ingredients.`);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

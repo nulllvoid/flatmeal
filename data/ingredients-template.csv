@@ -1,0 +1,15 @@
+recipe_slug,name_en,name_hi,name_kn,qty_per_person,unit,category,is_staple,sort_order
+palak-paneer,Spinach (palak),पालक,ಪಾಲಕ್ ಸೊಪ್ಪು,0.7,bunch,vegetable,false,1
+palak-paneer,Paneer,पनीर,ಪನೀರ್,70,g,dairy,false,2
+palak-paneer,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,3
+palak-paneer,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.7,piece,vegetable,false,4
+palak-paneer,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,5
+palak-paneer,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.5,tsp,staple,true,6
+palak-paneer,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,7
+palak-paneer,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,8
+dal-tadka,Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ,60,g,protein,false,1
+dal-tadka,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,2
+dal-tadka,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,2,piece,vegetable,false,3
+dal-tadka,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,4
+dal-tadka,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,5
+dal-tadka,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.7,piece,staple,true,6

@@ -1,0 +1,20 @@
+# Expo / React Native app (app/ has its own .gitignore too, but nested
+# .gitignore files only take effect if the directory is tracked from git's
+# perspective — keeping broad patterns here as a safety net)
+app/node_modules/
+app/.expo/
+app/dist/
+app/web-build/
+app/expo-env.d.ts
+app/*.tsbuildinfo
+app/ios/
+app/android/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

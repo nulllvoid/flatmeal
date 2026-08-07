@@ -42,8 +42,12 @@ create policy "profiles: insert own row" on profiles
 -- ============ flats ============
 alter table flats enable row level security;
 
+-- Includes created_by = auth.uid() so a freshly-inserted row satisfies the
+-- RETURNING clause's implicit SELECT check before the creator's
+-- flat_members row exists (the client inserts flats then flat_members as
+-- two separate requests, not atomically).
 create policy "flats: members read" on flats
-  for select using (is_flat_member(id));
+  for select using (is_flat_member(id) or created_by = auth.uid());
 
 create policy "flats: members update" on flats
   for update using (is_flat_member(id));

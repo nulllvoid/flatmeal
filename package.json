@@ -1,0 +1,13 @@
+{
+  "name": "flatmeal-tooling",
+  "private": true,
+  "description": "Root-level scripts for repo tooling (Supabase seeding). The actual app lives in /app.",
+  "scripts": {
+    "seed": "tsx supabase/seed/seed-recipes.ts"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.112.2",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0"
+  }
+}

@@ -1,280 +1,793 @@
-// Hand-written to match docs/05-schema.sql (source of truth).
-// Once a real Supabase project exists, regenerate with:
-//   npx supabase gen types typescript --project-id <ref> > src/types/database.ts
-// and reconcile any drift against docs/05-schema.sql.
+﻿export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export type DietType = 'veg' | 'egg' | 'nonveg';
-export type Allergen = 'peanut' | 'dairy' | 'gluten' | 'shellfish' | 'soy';
-export type CookLanguage = 'hi' | 'kn' | 'en';
-export type FlatRole = 'admin' | 'member';
-export type PollStatus = 'open' | 'closed' | 'cancelled' | 'dispatched';
-export type WinnerReason = 'votes' | 'tiebreak_lru' | 'auto_no_votes';
-export type IngredientUnit = 'piece' | 'g' | 'ml' | 'bunch' | 'packet' | 'cup' | 'tbsp' | 'tsp';
-export type IngredientCategory = 'vegetable' | 'dairy' | 'staple' | 'protein' | 'other';
-export type DispatchMode = 'mock' | 'live';
-export type DispatchStatus = 'queued' | 'mocked' | 'sent' | 'delivered' | 'read' | 'failed';
-
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.15"
+  }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string;
-          display_name: string;
-          diet_type: DietType;
-          is_jain: boolean;
-          allergies: Allergen[];
-          push_token: string | null;
-          notifications_muted: boolean;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['profiles']['Row']> & {
-          id: string;
-          display_name: string;
-        };
-        Update: Partial<Database['public']['Tables']['profiles']['Row']>;
-      };
-      flats: {
-        Row: {
-          id: string;
-          name: string;
-          invite_code: string;
-          poll_open_time: string;
-          poll_close_time: string;
-          dispatch_time: string;
-          tz: string;
-          created_by: string | null;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['flats']['Row']> & { name: string };
-        Update: Partial<Database['public']['Tables']['flats']['Row']>;
-      };
-      flat_members: {
-        Row: {
-          flat_id: string;
-          user_id: string;
-          role: FlatRole;
-          joined_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['flat_members']['Row']> & {
-          flat_id: string;
-          user_id: string;
-        };
-        Update: Partial<Database['public']['Tables']['flat_members']['Row']>;
-      };
       cooks: {
         Row: {
-          id: string;
-          flat_id: string;
-          name: string;
-          phone: string;
-          language: CookLanguage;
-          is_active: boolean;
-          audit_note: string | null;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['cooks']['Row']> & {
-          flat_id: string;
-          name: string;
-          phone: string;
-        };
-        Update: Partial<Database['public']['Tables']['cooks']['Row']>;
-      };
-      recipes: {
-        Row: {
-          id: string;
-          slug: string;
-          name: string;
-          cuisine: string;
-          base: string;
-          diet_class: DietType;
-          jain_ok: boolean;
-          allergens: Allergen[];
-          seasons: string[];
-          instructions_en: string;
-          image_path: string | null;
-          is_active: boolean;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['recipes']['Row']> & {
-          slug: string;
-          name: string;
-          cuisine: string;
-          base: string;
-          diet_class: DietType;
-          instructions_en: string;
-        };
-        Update: Partial<Database['public']['Tables']['recipes']['Row']>;
-      };
-      recipe_ingredients: {
-        Row: {
-          id: string;
-          recipe_id: string;
-          name_en: string;
-          name_hi: string | null;
-          name_kn: string | null;
-          qty_per_person: number;
-          unit: IngredientUnit;
-          category: IngredientCategory;
-          is_staple: boolean;
-          sort_order: number;
-        };
-        Insert: Partial<Database['public']['Tables']['recipe_ingredients']['Row']> & {
-          recipe_id: string;
-          name_en: string;
-          qty_per_person: number;
-          unit: IngredientUnit;
-          category: IngredientCategory;
-        };
-        Update: Partial<Database['public']['Tables']['recipe_ingredients']['Row']>;
-      };
-      recipe_translations: {
-        Row: {
-          recipe_id: string;
-          language: Extract<CookLanguage, 'hi' | 'kn'>;
-          instructions: string;
-          reviewed_by: string | null;
-          reviewed_at: string | null;
-        };
-        Insert: Partial<Database['public']['Tables']['recipe_translations']['Row']> & {
-          recipe_id: string;
-          language: Extract<CookLanguage, 'hi' | 'kn'>;
-          instructions: string;
-        };
-        Update: Partial<Database['public']['Tables']['recipe_translations']['Row']>;
-      };
+          audit_note: string | null
+          created_at: string
+          flat_id: string
+          id: string
+          is_active: boolean
+          language: string
+          name: string
+          phone: string
+        }
+        Insert: {
+          audit_note?: string | null
+          created_at?: string
+          flat_id: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          name: string
+          phone: string
+        }
+        Update: {
+          audit_note?: string | null
+          created_at?: string
+          flat_id?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          name?: string
+          phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cooks_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_polls: {
         Row: {
-          id: string;
-          flat_id: string;
-          poll_date: string;
-          status: PollStatus;
-          winner_recipe_id: string | null;
-          winner_reason: WinnerReason | null;
-          flat_note: string | null;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['daily_polls']['Row']> & {
-          flat_id: string;
-          poll_date: string;
-        };
-        Update: Partial<Database['public']['Tables']['daily_polls']['Row']>;
-      };
-      poll_options: {
-        Row: {
-          poll_id: string;
-          recipe_id: string;
-          position: 1 | 2 | 3;
-        };
-        Insert: Database['public']['Tables']['poll_options']['Row'];
-        Update: Partial<Database['public']['Tables']['poll_options']['Row']>;
-      };
-      votes: {
-        Row: {
-          poll_id: string;
-          user_id: string;
-          recipe_id: string;
-          voted_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['votes']['Row']> & {
-          poll_id: string;
-          user_id: string;
-          recipe_id: string;
-        };
-        Update: Partial<Database['public']['Tables']['votes']['Row']>;
-      };
+          created_at: string
+          flat_id: string
+          flat_note: string | null
+          id: string
+          poll_date: string
+          status: string
+          winner_reason: string | null
+          winner_recipe_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          flat_id: string
+          flat_note?: string | null
+          id?: string
+          poll_date: string
+          status?: string
+          winner_reason?: string | null
+          winner_recipe_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          flat_id?: string
+          flat_note?: string | null
+          id?: string
+          poll_date?: string
+          status?: string
+          winner_reason?: string | null
+          winner_recipe_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_polls_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_polls_winner_recipe_id_fkey"
+            columns: ["winner_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       day_attendance: {
         Row: {
-          flat_id: string;
-          user_id: string;
-          poll_date: string;
-          is_out: boolean;
-          updated_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['day_attendance']['Row']> & {
-          flat_id: string;
-          user_id: string;
-          poll_date: string;
-        };
-        Update: Partial<Database['public']['Tables']['day_attendance']['Row']>;
-      };
-      grocery_checks: {
-        Row: {
-          poll_id: string;
-          ingredient_id: string;
-          checked_by: string | null;
-          checked_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['grocery_checks']['Row']> & {
-          poll_id: string;
-          ingredient_id: string;
-        };
-        Update: Partial<Database['public']['Tables']['grocery_checks']['Row']>;
-      };
+          flat_id: string
+          is_out: boolean
+          poll_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          flat_id: string
+          is_out?: boolean
+          poll_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          flat_id?: string
+          is_out?: boolean
+          poll_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day_attendance_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "day_attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatch_log: {
         Row: {
-          id: string;
-          poll_id: string;
-          mode: DispatchMode;
-          language: string;
-          headcount: number;
-          payload_en: string;
-          payload_translated: string;
-          bsp_message_id: string | null;
-          status: DispatchStatus;
-          error: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['dispatch_log']['Row']> & {
-          poll_id: string;
-          mode: DispatchMode;
-          language: string;
-          headcount: number;
-          payload_en: string;
-          payload_translated: string;
-        };
-        Update: Partial<Database['public']['Tables']['dispatch_log']['Row']>;
-      };
-      meal_feedback: {
-        Row: {
-          poll_id: string;
-          user_id: string;
-          thumbs_up: boolean;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['meal_feedback']['Row']> & {
-          poll_id: string;
-          user_id: string;
-          thumbs_up: boolean;
-        };
-        Update: Partial<Database['public']['Tables']['meal_feedback']['Row']>;
-      };
+          bsp_message_id: string | null
+          created_at: string
+          error: string | null
+          headcount: number
+          id: string
+          language: string
+          mode: string
+          payload_en: string
+          payload_translated: string
+          poll_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bsp_message_id?: string | null
+          created_at?: string
+          error?: string | null
+          headcount: number
+          id?: string
+          language: string
+          mode: string
+          payload_en: string
+          payload_translated: string
+          poll_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bsp_message_id?: string | null
+          created_at?: string
+          error?: string | null
+          headcount?: number
+          id?: string
+          language?: string
+          mode?: string
+          payload_en?: string
+          payload_translated?: string
+          poll_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_log_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback: {
         Row: {
-          id: string;
-          user_id: string | null;
-          flat_id: string | null;
-          body: string;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['feedback']['Row']> & { body: string };
-        Update: Partial<Database['public']['Tables']['feedback']['Row']>;
-      };
+          body: string
+          created_at: string
+          flat_id: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          flat_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          flat_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flat_members: {
+        Row: {
+          flat_id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          flat_id: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          flat_id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flat_members_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flat_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flats: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dispatch_time: string
+          id: string
+          invite_code: string
+          name: string
+          poll_close_time: string
+          poll_open_time: string
+          tz: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dispatch_time?: string
+          id?: string
+          invite_code?: string
+          name: string
+          poll_close_time?: string
+          poll_open_time?: string
+          tz?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dispatch_time?: string
+          id?: string
+          invite_code?: string
+          name?: string
+          poll_close_time?: string
+          poll_open_time?: string
+          tz?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flats_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grocery_checks: {
+        Row: {
+          checked_at: string
+          checked_by: string | null
+          ingredient_id: string
+          poll_id: string
+        }
+        Insert: {
+          checked_at?: string
+          checked_by?: string | null
+          ingredient_id: string
+          poll_id: string
+        }
+        Update: {
+          checked_at?: string
+          checked_by?: string | null
+          ingredient_id?: string
+          poll_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_checks_checked_by_fkey"
+            columns: ["checked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_checks_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_checks_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_feedback: {
+        Row: {
+          created_at: string
+          poll_id: string
+          thumbs_up: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          poll_id: string
+          thumbs_up: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          poll_id?: string
+          thumbs_up?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_feedback_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_errors: {
         Row: {
-          id: string;
-          stage: 'create_poll' | 'close_poll' | 'dispatch_cook' | 'wa_webhook';
-          flat_id: string | null;
-          detail: Record<string, unknown>;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['pipeline_errors']['Row']> & {
-          stage: 'create_poll' | 'close_poll' | 'dispatch_cook' | 'wa_webhook';
-          detail: Record<string, unknown>;
-        };
-        Update: Partial<Database['public']['Tables']['pipeline_errors']['Row']>;
-      };
-    };
-  };
+          created_at: string
+          detail: Json
+          flat_id: string | null
+          id: string
+          stage: string
+        }
+        Insert: {
+          created_at?: string
+          detail: Json
+          flat_id?: string | null
+          id?: string
+          stage: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          flat_id?: string | null
+          id?: string
+          stage?: string
+        }
+        Relationships: []
+      }
+      poll_options: {
+        Row: {
+          poll_id: string
+          position: number
+          recipe_id: string
+        }
+        Insert: {
+          poll_id: string
+          position: number
+          recipe_id: string
+        }
+        Update: {
+          poll_id?: string
+          position?: number
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_options_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          allergies: string[]
+          created_at: string
+          diet_type: string
+          display_name: string
+          id: string
+          is_jain: boolean
+          notifications_muted: boolean
+          push_token: string | null
+        }
+        Insert: {
+          allergies?: string[]
+          created_at?: string
+          diet_type?: string
+          display_name: string
+          id: string
+          is_jain?: boolean
+          notifications_muted?: boolean
+          push_token?: string | null
+        }
+        Update: {
+          allergies?: string[]
+          created_at?: string
+          diet_type?: string
+          display_name?: string
+          id?: string
+          is_jain?: boolean
+          notifications_muted?: boolean
+          push_token?: string | null
+        }
+        Relationships: []
+      }
+      recipe_ingredients: {
+        Row: {
+          category: string
+          id: string
+          is_staple: boolean
+          name_en: string
+          name_hi: string | null
+          name_kn: string | null
+          qty_per_person: number
+          recipe_id: string
+          sort_order: number
+          unit: string
+        }
+        Insert: {
+          category: string
+          id?: string
+          is_staple?: boolean
+          name_en: string
+          name_hi?: string | null
+          name_kn?: string | null
+          qty_per_person: number
+          recipe_id: string
+          sort_order?: number
+          unit: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          is_staple?: boolean
+          name_en?: string
+          name_hi?: string | null
+          name_kn?: string | null
+          qty_per_person?: number
+          recipe_id?: string
+          sort_order?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_translations: {
+        Row: {
+          instructions: string
+          language: string
+          recipe_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          instructions: string
+          language: string
+          recipe_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          instructions?: string
+          language?: string
+          recipe_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_translations_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          allergens: string[]
+          base: string
+          created_at: string
+          cuisine: string
+          diet_class: string
+          id: string
+          image_path: string | null
+          instructions_en: string
+          is_active: boolean
+          jain_ok: boolean
+          name: string
+          seasons: string[]
+          slug: string
+        }
+        Insert: {
+          allergens?: string[]
+          base: string
+          created_at?: string
+          cuisine: string
+          diet_class: string
+          id?: string
+          image_path?: string | null
+          instructions_en: string
+          is_active?: boolean
+          jain_ok?: boolean
+          name: string
+          seasons?: string[]
+          slug: string
+        }
+        Update: {
+          allergens?: string[]
+          base?: string
+          created_at?: string
+          cuisine?: string
+          diet_class?: string
+          id?: string
+          image_path?: string | null
+          instructions_en?: string
+          is_active?: boolean
+          jain_ok?: boolean
+          name?: string
+          seasons?: string[]
+          slug?: string
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          poll_id: string
+          recipe_id: string
+          user_id: string
+          voted_at: string
+        }
+        Insert: {
+          poll_id: string
+          recipe_id: string
+          user_id: string
+          voted_at?: string
+        }
+        Update: {
+          poll_id?: string
+          recipe_id?: string
+          user_id?: string
+          voted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      is_flat_member: { Args: { target_flat_id: string }; Returns: boolean }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

@@ -1,49 +1,35 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import type { TodayPollView } from '@/types/domain';
-
-// TODO: replace with a Supabase query (daily_polls + poll_options + votes,
-// realtime-subscribed) for today's poll scoped to the user's flat.
-const MOCK_POLL: TodayPollView = {
-  pollId: 'mock-poll',
-  pollDate: new Date().toISOString().slice(0, 10),
-  status: 'open',
-  headcount: 3,
-  isOutToday: false,
-  winnerRecipeId: null,
-  winnerReason: null,
-  options: [
-    { recipeId: 'palak-paneer', name: 'Palak Paneer', cuisine: 'North Indian', dietClass: 'veg', voteCount: 1, votedByMe: false, voterDisplayNames: ['Asha'] },
-    { recipeId: 'dal-tadka', name: 'Dal Tadka', cuisine: 'North Indian', dietClass: 'veg', voteCount: 0, votedByMe: false, voterDisplayNames: [] },
-    { recipeId: 'tomato-rasam', name: 'Tomato Rasam', cuisine: 'South Indian', dietClass: 'veg', voteCount: 1, votedByMe: false, voterDisplayNames: ['Ravi'] },
-  ],
-};
+import { useMyFlat } from '@/hooks/use-my-flat';
+import { useSession } from '@/hooks/use-session';
+import { useTodayPoll } from '@/hooks/use-today-poll';
 
 export default function TodayScreen() {
   const router = useRouter();
-  const [poll, setPoll] = useState<TodayPollView>(MOCK_POLL);
-  const [isOut, setIsOut] = useState(poll.isOutToday);
+  const session = useSession();
+  const flatId = useMyFlat(session);
+  const { poll, headcount, castVote, setOutToday } = useTodayPoll(flatId, session?.user.id);
 
-  function castVote(recipeId: string) {
-    // TODO: upsert into `votes` (poll_id, user_id) via Supabase; realtime
-    // subscription will reconcile voteCount/voterDisplayNames afterwards.
-    setPoll((prev) => ({
-      ...prev,
-      options: prev.options.map((option) => ({
-        ...option,
-        votedByMe: option.recipeId === recipeId,
-        voteCount:
-          option.recipeId === recipeId
-            ? option.voteCount + (option.votedByMe ? 0 : 1)
-            : option.voteCount - (option.votedByMe ? 1 : 0),
-      })),
-    }));
+  if (poll === undefined) {
+    return null; // loading
+  }
+
+  if (poll === null) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ThemedView style={styles.container}>
+          <ThemedText type="subtitle">No poll yet today</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Options land at your flat&apos;s poll-open time.
+          </ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
   }
 
   const winner = poll.options.find((o) => o.recipeId === poll.winnerRecipeId);
@@ -55,20 +41,14 @@ export default function TodayScreen() {
           <ThemedView>
             <ThemedText type="subtitle">Dinner tonight</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {poll.headcount} eating tonight
+              {headcount} eating tonight
             </ThemedText>
           </ThemedView>
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.outToggleRow}>
           <ThemedText type="default">I&apos;m out today</ThemedText>
-          <Switch
-            value={isOut}
-            onValueChange={(value) => {
-              setIsOut(value);
-              // TODO: upsert day_attendance(flat_id, user_id, poll_date, is_out)
-            }}
-          />
+          <Switch value={poll.isOutToday} onValueChange={setOutToday} />
         </ThemedView>
 
         {poll.status === 'open' && (

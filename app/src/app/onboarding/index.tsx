@@ -1,32 +1,63 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useSession } from '@/hooks/use-session';
+import { supabase } from '@/lib/supabase';
 
-// S0 step 1: phone number → OTP → session.
-// Steps 2 (create/join flat, dietary profile, cook details, poll timings)
-// and 3 (push permission) live in sibling screens once auth is wired up:
-//   onboarding/create-flat.tsx, onboarding/join-flat.tsx,
-//   onboarding/dietary-profile.tsx, onboarding/cook-details.tsx
-export default function OnboardingPhoneScreen() {
+// S0 step 1, email magic-link variant (docs/02-prd.md §F1 "or magic link
+// fallback"). Phone OTP is blocked on India DLT/SMS-provider setup — see
+// onboarding-phone.tsx for the phone flow, kept for when that's unblocked.
+// Step 2 (create/join flat) lives in onboarding/create-flat.tsx.
+export default function OnboardingEmailScreen() {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
+  const session = useSession();
+  const [email, setEmail] = useState('');
+  const [linkSent, setLinkSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function sendOtp() {
-    // TODO: supabase.auth.signInWithOtp({ phone })
-    setOtpSent(true);
+  // On web, clicking the magic link redirects back to this same page with
+  // the session already established (detectSessionInUrl) — pick that up
+  // and continue into profile creation once it lands.
+  useEffect(() => {
+    if (!session) return;
+    ensureProfileThenContinue(session.user.id, session.user.email ?? '');
+  }, [session]);
+
+  async function ensureProfileThenContinue(userId: string, emailAddr: string) {
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      await supabase.from('profiles').insert({ id: userId, display_name: emailAddr || 'New member' });
+    }
+
+    router.replace('/onboarding/create-flat');
   }
 
-  async function verifyOtp() {
-    // TODO: supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' })
-    // then check flat_members for an existing flat; if none, go to create/join.
-    router.replace('/(tabs)');
+  async function sendMagicLink() {
+    setError(null);
+    setLoading(true);
+    const { error: linkError } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+      },
+    });
+    setLoading(false);
+    if (linkError) {
+      setError(linkError.message);
+      return;
+    }
+    setLinkSent(true);
   }
 
   return (
@@ -37,36 +68,32 @@ export default function OnboardingPhoneScreen() {
           Vote in 5 seconds. Your cook gets clear instructions, automatically.
         </ThemedText>
 
-        {!otpSent ? (
+        {!linkSent ? (
           <>
             <TextInput
-              placeholder="+91 98765 43210"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
+              placeholder="you@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
               style={styles.input}
             />
-            <Pressable style={styles.primaryButton} onPress={sendOtp}>
+            <Pressable style={styles.primaryButton} onPress={sendMagicLink} disabled={loading || !email}>
               <ThemedText type="smallBold" style={styles.primaryButtonText}>
-                Send OTP
+                {loading ? 'Sending…' : 'Send magic link'}
               </ThemedText>
             </Pressable>
           </>
         ) : (
-          <>
-            <TextInput
-              placeholder="6-digit code"
-              keyboardType="number-pad"
-              value={otp}
-              onChangeText={setOtp}
-              style={styles.input}
-            />
-            <Pressable style={styles.primaryButton} onPress={verifyOtp}>
-              <ThemedText type="smallBold" style={styles.primaryButtonText}>
-                Verify
-              </ThemedText>
-            </Pressable>
-          </>
+          <ThemedText type="default" themeColor="textSecondary">
+            Check {email} for a sign-in link, then open it in this browser.
+          </ThemedText>
+        )}
+
+        {error && (
+          <ThemedText type="small" style={styles.errorText}>
+            {error}
+          </ThemedText>
         )}
       </ThemedView>
     </SafeAreaView>
@@ -96,5 +123,8 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#ffffff',
+  },
+  errorText: {
+    color: '#e5484d',
   },
 });

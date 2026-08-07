@@ -1,7 +1,19 @@
 import { Redirect } from 'expo-router';
 
-// TODO: once Supabase auth is wired up, check session + flat membership here
-// and redirect to /onboarding when there's no session or no flat yet.
+import { useMyFlat } from '@/hooks/use-my-flat';
+import { useSession } from '@/hooks/use-session';
+
 export default function RootIndex() {
+  const session = useSession();
+  const flatId = useMyFlat(session);
+
+  if (session === undefined || (session && flatId === undefined)) {
+    return null; // loading — TODO: splash/spinner
+  }
+
+  if (!session || !flatId) {
+    return <Redirect href="/onboarding" />;
+  }
+
   return <Redirect href="/(tabs)" />;
 }

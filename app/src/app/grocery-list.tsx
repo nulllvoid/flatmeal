@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useGroceryList } from '@/hooks/use-grocery-list';
+import { useMyFlat } from '@/hooks/use-my-flat';
+import { useSession } from '@/hooks/use-session';
 import type { GroceryLineView } from '@/types/domain';
 
 const CATEGORY_ORDER = ['vegetable', 'dairy', 'protein', 'other'] as const;
@@ -15,44 +18,24 @@ const CATEGORY_LABEL: Record<(typeof CATEGORY_ORDER)[number], string> = {
   other: 'Other',
 };
 
-// TODO: replace with recipe_ingredients for daily_polls.winner_recipe_id,
-// qty_per_person × headcount rounded to buyable units, joined with
-// grocery_checks (realtime-synced "we already have this" ticks).
-const MOCK_HEADCOUNT = 3;
-const MOCK_DISH = 'Palak Paneer';
-const MOCK_LINES: GroceryLineView[] = [
-  { ingredientId: '1', nameEn: 'Spinach (palak)', nameHi: 'पालक', nameKn: 'ಪಾಲಕ್ ಸೊಪ್ಪು', quantityLabel: '2 bunches', category: 'vegetable', unit: 'bunch', isStaple: false, checked: false },
-  { ingredientId: '2', nameEn: 'Paneer', nameHi: 'पनीर', nameKn: 'ಪನೀರ್', quantityLabel: '200 g', category: 'dairy', unit: 'g', isStaple: false, checked: false },
-  { ingredientId: '3', nameEn: 'Onion (medium)', nameHi: 'प्याज़', nameKn: 'ಈರುಳ್ಳಿ', quantityLabel: '2 medium', category: 'vegetable', unit: 'piece', isStaple: false, checked: false },
-  { ingredientId: '4', nameEn: 'Tomato (medium)', nameHi: 'टमाटर', nameKn: 'ಟೊಮೇಟೊ', quantityLabel: '2 medium', category: 'vegetable', unit: 'piece', isStaple: false, checked: false },
-  { ingredientId: '5', nameEn: 'Ginger-garlic paste', nameHi: null, nameKn: null, quantityLabel: 'check you have', category: 'staple', unit: 'tsp', isStaple: true, checked: false },
-  { ingredientId: '6', nameEn: 'Cumin (jeera)', nameHi: null, nameKn: null, quantityLabel: 'check you have', category: 'staple', unit: 'tsp', isStaple: true, checked: false },
-  { ingredientId: '7', nameEn: 'Garam masala', nameHi: null, nameKn: null, quantityLabel: 'check you have', category: 'staple', unit: 'tsp', isStaple: true, checked: false },
-  { ingredientId: '8', nameEn: 'Turmeric', nameHi: null, nameKn: null, quantityLabel: 'check you have', category: 'staple', unit: 'tsp', isStaple: true, checked: false },
-];
-
 export default function GroceryListScreen() {
-  const [lines, setLines] = useState<GroceryLineView[]>(MOCK_LINES);
+  const session = useSession();
+  const flatId = useMyFlat(session);
+  const { data, toggleChecked } = useGroceryList(flatId);
 
-  function toggleChecked(ingredientId: string) {
-    // TODO: upsert grocery_checks(poll_id, ingredient_id, checked_by)
-    setLines((prev) =>
-      prev.map((line) => (line.ingredientId === ingredientId ? { ...line, checked: !line.checked } : line))
-    );
-  }
-
-  const buyList = useMemo(() => lines.filter((l) => !l.isStaple), [lines]);
-  const staples = useMemo(() => lines.filter((l) => l.isStaple), [lines]);
+  const buyList = useMemo(() => data?.lines.filter((l) => !l.isStaple) ?? [], [data]);
+  const staples = useMemo(() => data?.lines.filter((l) => l.isStaple) ?? [], [data]);
   const uncheckedCount = buyList.filter((l) => !l.checked).length;
 
   const shareText = useMemo(() => {
+    if (!data) return '';
     const toBuy = buyList
       .filter((l) => !l.checked)
       .map((l) => `- ${l.nameEn} — ${l.quantityLabel}`)
       .join('\n');
     const stapleNames = staples.map((s) => s.nameEn).join(', ');
-    return `🛒 Tonight: ${MOCK_DISH} (${MOCK_HEADCOUNT} people)\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
-  }, [buyList, staples]);
+    return `🛒 Tonight: ${data.dishName} (${data.headcount} people)\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
+  }, [data, buyList, staples]);
 
   async function handleShare() {
     await Share.share({ message: shareText });
@@ -60,15 +43,32 @@ export default function GroceryListScreen() {
 
   const grouped = CATEGORY_ORDER.map((category) => ({
     category,
-    items: buyList.filter((l) => l.category === category),
+    items: buyList.filter((l: GroceryLineView) => l.category === category),
   })).filter((g) => g.items.length > 0);
+
+  if (data === undefined) {
+    return null; // loading
+  }
+
+  if (data === null) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ThemedView style={styles.container}>
+          <ThemedText type="subtitle">No grocery list yet</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            This shows up once tonight&apos;s poll has closed with a winner.
+          </ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.container}>
-        <ThemedText type="subtitle">{MOCK_DISH}</ThemedText>
+        <ThemedText type="subtitle">{data.dishName}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          Scaled for {MOCK_HEADCOUNT}
+          Scaled for {data.headcount}
         </ThemedText>
 
         {grouped.map(({ category, items }) => (
@@ -79,7 +79,7 @@ export default function GroceryListScreen() {
             {items.map((item) => (
               <Pressable
                 key={item.ingredientId}
-                onPress={() => toggleChecked(item.ingredientId)}
+                onPress={() => toggleChecked(item.ingredientId, !item.checked)}
                 style={styles.itemRow}>
                 <ThemedView style={[styles.checkbox, item.checked && styles.checkboxChecked]} />
                 <ThemedView style={styles.itemTextCol}>

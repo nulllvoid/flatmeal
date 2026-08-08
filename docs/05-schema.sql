@@ -55,6 +55,7 @@ create table recipes (
   name text not null,
   cuisine text not null,                      -- north_indian | south_indian | ...
   base text not null,                         -- primary base for variety heuristic: paneer|dal|rice|roti-sabzi|...
+  kind text not null default 'main' check (kind in ('main','accompaniment')),  -- 'accompaniment' = roti/rice/etc, paired via recipe_accompaniments
   diet_class text not null check (diet_class in ('veg','egg','nonveg')),
   jain_ok boolean not null default false,
   allergens text[] not null default '{}',
@@ -87,6 +88,17 @@ create table recipe_translations (            -- reviewed translation cache for 
   primary key (recipe_id, language)
 );
 
+-- curated mapping: which accompaniment (kind='accompaniment') recipes are
+-- valid for a given main dish. Absence of any row for a main_recipe_id means
+-- that dish has no accompaniment (e.g. Vegetable Pulao already IS the
+-- starch) — not an error state, just zero options at poll time.
+create table recipe_accompaniments (
+  main_recipe_id uuid not null references recipes(id) on delete cascade,
+  accompaniment_recipe_id uuid not null references recipes(id) on delete cascade,
+  sort_order int not null default 0,
+  primary key (main_recipe_id, accompaniment_recipe_id)
+);
+
 -- ============ daily loop ============
 
 create table daily_polls (
@@ -96,6 +108,16 @@ create table daily_polls (
   status text not null default 'open' check (status in ('open','closed','cancelled','dispatched')),
   winner_recipe_id uuid references recipes(id),
   winner_reason text check (winner_reason in ('votes','tiebreak_lru','auto_no_votes')),
+  -- Accompaniment (roti/rice/etc) is a second, independent vote whose
+  -- candidates depend on winner_recipe_id, so it can't be decided until
+  -- after the main dish is known: options are picked by close_poll right
+  -- after winner_recipe_id is set, and the vote itself is tallied by
+  -- dispatch_cook (reusing the existing close->dispatch window instead of
+  -- a new cron step). 'none_available' means the winning dish has no
+  -- curated accompaniment (e.g. Vegetable Pulao IS the starch) — distinct
+  -- from 'auto_no_votes' (options existed, nobody voted).
+  winner_accompaniment_recipe_id uuid references recipes(id),
+  winner_accompaniment_reason text check (winner_accompaniment_reason in ('votes','tiebreak_lru','auto_no_votes','none_available')),
   flat_note text,                             -- 'less spicy today' — editable until dispatch
   created_at timestamptz not null default now(),
   unique (flat_id, poll_date)                 -- idempotent creation
@@ -114,6 +136,25 @@ create table votes (
   recipe_id uuid not null references recipes(id),
   voted_at timestamptz not null default now(),
   primary key (poll_id, user_id)              -- one changeable vote per member
+);
+
+-- Twin of poll_options/votes for the accompaniment vote. Populated by
+-- close_poll (options) once the main winner is known, not by create_poll —
+-- see daily_polls.winner_accompaniment_* comment. 0 rows in
+-- poll_accompaniment_options is a valid, non-error state.
+create table poll_accompaniment_options (
+  poll_id uuid not null references daily_polls(id) on delete cascade,
+  recipe_id uuid not null references recipes(id),
+  position int not null check (position between 1 and 3),
+  primary key (poll_id, recipe_id)
+);
+
+create table accompaniment_votes (
+  poll_id uuid not null references daily_polls(id) on delete cascade,
+  user_id uuid not null references profiles(id) on delete cascade,
+  recipe_id uuid not null references recipes(id),
+  voted_at timestamptz not null default now(),
+  primary key (poll_id, user_id)
 );
 
 create table day_attendance (                 -- "I'm out today"

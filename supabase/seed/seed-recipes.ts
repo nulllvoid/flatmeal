@@ -1,7 +1,8 @@
-// One-off/dev seed script: reads /data/recipes-template.csv and
-// /data/ingredients-template.csv (source of truth for recipe data entry,
-// see CLAUDE.md) and upserts them into the recipes / recipe_ingredients
-// tables via the service role.
+// One-off/dev seed script: reads /data/recipes-template.csv,
+// /data/ingredients-template.csv, and /data/recipe-accompaniments-template.csv
+// (source of truth for recipe data entry, see CLAUDE.md) and upserts them
+// into the recipes / recipe_ingredients / recipe_accompaniments tables via
+// the service role.
 //
 // Run with: npx tsx supabase/seed/seed-recipes.ts
 // Requires env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -58,6 +59,7 @@ async function main() {
 
   const recipesCsv = parseCsv(readFileSync(join(DATA_DIR, 'recipes-template.csv'), 'utf-8'));
   const ingredientsCsv = parseCsv(readFileSync(join(DATA_DIR, 'ingredients-template.csv'), 'utf-8'));
+  const accompanimentsCsv = parseCsv(readFileSync(join(DATA_DIR, 'recipe-accompaniments-template.csv'), 'utf-8'));
 
   for (const row of recipesCsv) {
     const { error } = await supabase.from('recipes').upsert(
@@ -66,6 +68,7 @@ async function main() {
         name: row.name,
         cuisine: row.cuisine,
         base: row.base,
+        kind: row.kind || 'main',
         diet_class: row.diet_class,
         jain_ok: row.jain_ok === 'true',
         allergens: row.allergens ? row.allergens.split(',').filter(Boolean) : [],
@@ -117,6 +120,34 @@ async function main() {
     ingredientCount += 1;
   }
   console.log(`Seeded ${ingredientCount} ingredients.`);
+
+  // recipe_accompaniments has a natural PK (main_recipe_id,
+  // accompaniment_recipe_id), so upsert is idempotent for free — no
+  // delete-then-insert dance needed like recipe_ingredients above.
+  let accompanimentCount = 0;
+  for (const row of accompanimentsCsv) {
+    const mainRecipeId = slugToId.get(row.main_recipe_slug);
+    const accompanimentRecipeId = slugToId.get(row.accompaniment_recipe_slug);
+    if (!mainRecipeId || !accompanimentRecipeId) {
+      console.warn(
+        `Skipping accompaniment mapping row: unknown slug "${row.main_recipe_slug}" or "${row.accompaniment_recipe_slug}"`
+      );
+      continue;
+    }
+    const { error } = await supabase.from('recipe_accompaniments').upsert(
+      {
+        main_recipe_id: mainRecipeId,
+        accompaniment_recipe_id: accompanimentRecipeId,
+        sort_order: Number(row.sort_order || 0),
+      },
+      { onConflict: 'main_recipe_id,accompaniment_recipe_id' }
+    );
+    if (error) {
+      throw new Error(`accompaniment mapping ${row.main_recipe_slug}/${row.accompaniment_recipe_slug}: ${error.message}`);
+    }
+    accompanimentCount += 1;
+  }
+  console.log(`Seeded ${accompanimentCount} recipe-accompaniment mappings.`);
 }
 
 main().catch((err) => {

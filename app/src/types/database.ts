@@ -14,6 +14,49 @@ export type Database = {
   }
   public: {
     Tables: {
+      accompaniment_votes: {
+        Row: {
+          poll_id: string
+          recipe_id: string
+          user_id: string
+          voted_at: string
+        }
+        Insert: {
+          poll_id: string
+          recipe_id: string
+          user_id: string
+          voted_at?: string
+        }
+        Update: {
+          poll_id?: string
+          recipe_id?: string
+          user_id?: string
+          voted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accompaniment_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accompaniment_votes_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accompaniment_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cooks: {
         Row: {
           audit_note: string | null
@@ -63,6 +106,8 @@ export type Database = {
           id: string
           poll_date: string
           status: string
+          winner_accompaniment_reason: string | null
+          winner_accompaniment_recipe_id: string | null
           winner_reason: string | null
           winner_recipe_id: string | null
         }
@@ -73,6 +118,8 @@ export type Database = {
           id?: string
           poll_date: string
           status?: string
+          winner_accompaniment_reason?: string | null
+          winner_accompaniment_recipe_id?: string | null
           winner_reason?: string | null
           winner_recipe_id?: string | null
         }
@@ -83,6 +130,8 @@ export type Database = {
           id?: string
           poll_date?: string
           status?: string
+          winner_accompaniment_reason?: string | null
+          winner_accompaniment_recipe_id?: string | null
           winner_reason?: string | null
           winner_recipe_id?: string | null
         }
@@ -92,6 +141,13 @@ export type Database = {
             columns: ["flat_id"]
             isOneToOne: false
             referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_polls_winner_accompaniment_recipe_id_fkey"
+            columns: ["winner_accompaniment_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
           {
@@ -417,6 +473,39 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_accompaniment_options: {
+        Row: {
+          poll_id: string
+          position: number
+          recipe_id: string
+        }
+        Insert: {
+          poll_id: string
+          position: number
+          recipe_id: string
+        }
+        Update: {
+          poll_id?: string
+          position?: number
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_accompaniment_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_accompaniment_options_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_options: {
         Row: {
           poll_id: string
@@ -482,6 +571,39 @@ export type Database = {
           push_token?: string | null
         }
         Relationships: []
+      }
+      recipe_accompaniments: {
+        Row: {
+          accompaniment_recipe_id: string
+          main_recipe_id: string
+          sort_order: number
+        }
+        Insert: {
+          accompaniment_recipe_id: string
+          main_recipe_id: string
+          sort_order?: number
+        }
+        Update: {
+          accompaniment_recipe_id?: string
+          main_recipe_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_accompaniments_accompaniment_recipe_id_fkey"
+            columns: ["accompaniment_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_accompaniments_main_recipe_id_fkey"
+            columns: ["main_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recipe_ingredients: {
         Row: {
@@ -574,6 +696,7 @@ export type Database = {
           instructions_en: string
           is_active: boolean
           jain_ok: boolean
+          kind: string
           name: string
           seasons: string[]
           slug: string
@@ -589,6 +712,7 @@ export type Database = {
           instructions_en: string
           is_active?: boolean
           jain_ok?: boolean
+          kind?: string
           name: string
           seasons?: string[]
           slug: string
@@ -604,6 +728,7 @@ export type Database = {
           instructions_en?: string
           is_active?: boolean
           jain_ok?: boolean
+          kind?: string
           name?: string
           seasons?: string[]
           slug?: string

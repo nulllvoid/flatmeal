@@ -26,10 +26,12 @@
 import { createAdminClient } from '../_shared/supabase-admin.ts';
 import { isWithinCronWindow, nowInIst } from '../_shared/ist-time.ts';
 import { logPipelineError } from '../_shared/pipeline-errors.ts';
+import { selectWinner, type VoteTally } from '../_shared/select-winner.ts';
 import { composeEnglishPayload, composeIngredientLine, type RecipeIngredientRow } from './compose-payload.ts';
 import { translateText } from './translate.ts';
 
 type DispatchMode = 'mock' | 'live';
+type AccompanimentWinnerReason = 'votes' | 'tiebreak_lru' | 'auto_no_votes' | 'none_available';
 
 Deno.serve(async (_req) => {
   const admin = createAdminClient();
@@ -66,7 +68,9 @@ async function dispatchForFlat(
   try {
     const { data: poll, error: pollError } = await admin
       .from('daily_polls')
-      .select('id, poll_date, winner_recipe_id, flat_note')
+      .select(
+        'id, poll_date, winner_recipe_id, flat_note, winner_accompaniment_recipe_id, winner_accompaniment_reason'
+      )
       .eq('flat_id', flatId)
       .eq('status', 'closed')
       .order('poll_date', { ascending: false })
@@ -88,26 +92,56 @@ async function dispatchForFlat(
       return;
     }
 
+    // Accompaniment vote tally — this is the "close" step for the second
+    // vote, deliberately deferred to dispatch time since its candidates
+    // (poll_accompaniment_options) aren't known until close_poll picks the
+    // main winner. See docs/05-schema.sql's daily_polls.winner_accompaniment_*
+    // comment. Runs before the ingredient fetch so accompanimentRecipeId is
+    // available there.
+    const { accompanimentRecipeId } = await resolveAccompanimentWinner(admin, poll, flatId);
+
     // Step 1: recompute headcount as of now, not as of poll close.
-    const [{ data: memberRows }, { data: attendanceRows }, { data: recipe }, { data: ingredientRows }] =
-      await Promise.all([
-        admin.from('flat_members').select('user_id').eq('flat_id', flatId),
-        admin
-          .from('day_attendance')
-          .select('user_id, is_out')
-          .eq('flat_id', flatId)
-          .eq('poll_date', poll.poll_date),
-        admin.from('recipes').select('name, instructions_en').eq('id', poll.winner_recipe_id).single(),
-        admin
-          .from('recipe_ingredients')
-          .select('name_en, name_hi, name_kn, qty_per_person, unit, is_staple, sort_order')
-          .eq('recipe_id', poll.winner_recipe_id)
-          .order('sort_order'),
-      ]);
+    const [
+      { data: memberRows },
+      { data: attendanceRows },
+      { data: recipe },
+      { data: ingredientRows },
+      { data: accompanimentRecipe },
+      { data: accompanimentIngredientRows },
+    ] = await Promise.all([
+      admin.from('flat_members').select('user_id').eq('flat_id', flatId),
+      admin
+        .from('day_attendance')
+        .select('user_id, is_out')
+        .eq('flat_id', flatId)
+        .eq('poll_date', poll.poll_date),
+      admin.from('recipes').select('name, instructions_en').eq('id', poll.winner_recipe_id).single(),
+      admin
+        .from('recipe_ingredients')
+        .select('name_en, name_hi, name_kn, qty_per_person, unit, is_staple, sort_order')
+        .eq('recipe_id', poll.winner_recipe_id)
+        .order('sort_order'),
+      accompanimentRecipeId
+        ? admin.from('recipes').select('name, instructions_en').eq('id', accompanimentRecipeId).maybeSingle()
+        : Promise.resolve({ data: null }),
+      accompanimentRecipeId
+        ? admin
+            .from('recipe_ingredients')
+            .select('name_en, name_hi, name_kn, qty_per_person, unit, is_staple, sort_order')
+            .eq('recipe_id', accompanimentRecipeId)
+            .order('sort_order')
+        : Promise.resolve({ data: null }),
+    ]);
 
     const outUserIds = new Set((attendanceRows ?? []).filter((a) => a.is_out).map((a) => a.user_id));
     const headcount = Math.max((memberRows ?? []).length - outUserIds.size, 0);
-    const ingredients: RecipeIngredientRow[] = ingredientRows ?? [];
+    // Accompaniment items visually trail the main dish's in the flat
+    // ingredient list (cosmetic sort_order offset — the WhatsApp message is
+    // a flat comma-separated list either way, not grouped by dish).
+    const ingredients: RecipeIngredientRow[] = [
+      ...(ingredientRows ?? []),
+      ...(accompanimentIngredientRows ?? []).map((r) => ({ ...r, sort_order: r.sort_order + 100 })),
+    ];
 
     // Step 3: English payload (dish, headcount, ingredients, method, note).
     const payloadEn = composeEnglishPayload({
@@ -116,6 +150,8 @@ async function dispatchForFlat(
       ingredients,
       instructions: recipe?.instructions_en ?? '',
       flatNote: poll.flat_note,
+      accompanimentName: accompanimentRecipe?.name ?? null,
+      accompanimentInstructions: accompanimentRecipe?.instructions_en ?? null,
     });
 
     // Step 4: translation — cached recipe_translations first; else live
@@ -130,6 +166,9 @@ async function dispatchForFlat(
       englishInstructions: recipe?.instructions_en ?? '',
       flatNote: poll.flat_note,
       fallback: payloadEn,
+      accompanimentRecipeId,
+      accompanimentName: accompanimentRecipe?.name ?? null,
+      accompanimentEnglishInstructions: accompanimentRecipe?.instructions_en ?? null,
     });
 
     let status: 'mocked' | 'sent' | 'failed' = 'mocked';
@@ -169,9 +208,41 @@ async function dispatchForFlat(
 
 // Step 4: prefer the reviewed cache; otherwise machine-translate and cache
 // it flagged for human review (reviewed_at stays null until someone signs
-// off — docs/06 "Quality gate before pilot"). flat_note is short and
-// dynamic so it's translated live every time, never cached. English cook
-// language skips translation entirely.
+// off — docs/06 "Quality gate before pilot"). Shared by the main recipe and
+// the accompaniment recipe (called once each).
+async function getOrTranslateInstructions(
+  admin: ReturnType<typeof createAdminClient>,
+  recipeId: string,
+  language: 'hi' | 'kn',
+  englishInstructions: string
+): Promise<string | null> {
+  const { data: cached } = await admin
+    .from('recipe_translations')
+    .select('instructions')
+    .eq('recipe_id', recipeId)
+    .eq('language', language)
+    .maybeSingle();
+
+  if (cached?.instructions) return cached.instructions;
+
+  const translated = await translateText(englishInstructions, language);
+  if (translated) {
+    // Cached with reviewed_at left null — flags it for the pre-pilot
+    // native-speaker review pass, never presented as pre-reviewed.
+    await admin
+      .from('recipe_translations')
+      .insert({ recipe_id: recipeId, language, instructions: translated, reviewed_at: null })
+      .select('recipe_id')
+      .maybeSingle();
+  }
+  return translated;
+}
+
+// flat_note is short and dynamic so it's translated live every time, never
+// cached. English cook language skips translation entirely. Accompaniment
+// dish *names* are never translated, matching the existing convention that
+// main dish names aren't translated either (recipe_translations only caches
+// `instructions`, not `name`).
 async function composeTranslatedPayload(
   admin: ReturnType<typeof createAdminClient>,
   params: {
@@ -183,52 +254,130 @@ async function composeTranslatedPayload(
     englishInstructions: string;
     flatNote: string | null;
     fallback: string;
+    accompanimentRecipeId: string | null;
+    accompanimentName: string | null;
+    accompanimentEnglishInstructions: string | null;
   }
 ): Promise<string> {
-  const { recipeId, language, dishName, headcount, ingredients, englishInstructions, flatNote, fallback } = params;
+  const {
+    recipeId,
+    language,
+    dishName,
+    headcount,
+    ingredients,
+    englishInstructions,
+    flatNote,
+    fallback,
+    accompanimentRecipeId,
+    accompanimentName,
+    accompanimentEnglishInstructions,
+  } = params;
 
   if (language === 'en') return fallback;
 
   const ingredientLine = composeIngredientLine(ingredients, headcount, language);
 
-  const { data: cached } = await admin
-    .from('recipe_translations')
-    .select('instructions')
-    .eq('recipe_id', recipeId)
-    .eq('language', language)
-    .maybeSingle();
-
-  let instructions = cached?.instructions ?? null;
-
-  if (!instructions) {
-    instructions = await translateText(englishInstructions, language);
-    if (instructions) {
-      // Cached with reviewed_at left null — flags it for the pre-pilot
-      // native-speaker review pass, never presented as pre-reviewed.
-      await admin
-        .from('recipe_translations')
-        .insert({ recipe_id: recipeId, language, instructions, reviewed_at: null })
-        .select('recipe_id')
-        .maybeSingle();
-    }
-  }
-
+  const instructions = await getOrTranslateInstructions(admin, recipeId, language, englishInstructions);
   if (!instructions) {
     // No cache and no translate key configured — dispatch must not block on
     // this, so the cook gets the English payload instead of nothing.
     return fallback;
   }
 
+  const accompanimentInstructions =
+    accompanimentRecipeId && accompanimentEnglishInstructions
+      ? await getOrTranslateInstructions(admin, accompanimentRecipeId, language, accompanimentEnglishInstructions)
+      : null;
+
   const translatedNote = flatNote && flatNote.trim() ? await translateText(flatNote, language) : null;
 
+  const dishLine = accompanimentName ? `${dishName} with ${accompanimentName}` : dishName;
+  const methodSection = accompanimentInstructions
+    ? `Method:\n${instructions}\n\nFor the ${accompanimentName}:\n${accompanimentInstructions}`
+    : `Method:\n${instructions}`;
+
   return [
-    `Today's meal: ${dishName}`,
+    `Today's meal: ${dishLine}`,
     `Please cook for ${headcount} people.`,
     '',
     `Ingredients: ${ingredientLine}`,
     '',
-    `Method:\n${instructions}`,
+    methodSection,
     '',
     `Note: ${translatedNote ?? flatNote ?? '—'}`,
   ].join('\n');
+}
+
+// Tallies accompaniment_votes for the poll's poll_accompaniment_options (if
+// any) and stamps the winner on daily_polls, mirroring close_poll's
+// main-dish tally via the same shared selectWinner(). No-op (returns the
+// already-stamped value) if a prior partial run already decided it, or if
+// close_poll already stamped 'none_available'.
+async function resolveAccompanimentWinner(
+  admin: ReturnType<typeof createAdminClient>,
+  poll: {
+    id: string;
+    winner_accompaniment_recipe_id: string | null;
+    winner_accompaniment_reason: string | null;
+  },
+  flatId: string
+): Promise<{ accompanimentRecipeId: string | null }> {
+  if (poll.winner_accompaniment_recipe_id) {
+    return { accompanimentRecipeId: poll.winner_accompaniment_recipe_id };
+  }
+  if (poll.winner_accompaniment_reason === 'none_available') {
+    return { accompanimentRecipeId: null };
+  }
+
+  const { data: optionRows } = await admin
+    .from('poll_accompaniment_options')
+    .select('recipe_id')
+    .eq('poll_id', poll.id);
+
+  if (!optionRows || optionRows.length === 0) {
+    // close_poll should have already stamped 'none_available' for this
+    // case, but guard defensively rather than leaving the column null.
+    await admin.from('daily_polls').update({ winner_accompaniment_reason: 'none_available' }).eq('id', poll.id);
+    return { accompanimentRecipeId: null };
+  }
+
+  const { data: voteRows } = await admin.from('accompaniment_votes').select('recipe_id').eq('poll_id', poll.id);
+
+  const voteCounts = new Map<string, number>();
+  for (const vote of voteRows ?? []) {
+    voteCounts.set(vote.recipe_id, (voteCounts.get(vote.recipe_id) ?? 0) + 1);
+  }
+  const tallies: VoteTally[] = optionRows.map((o) => ({
+    recipeId: o.recipe_id,
+    voteCount: voteCounts.get(o.recipe_id) ?? 0,
+  }));
+
+  const { data: history } = await admin
+    .from('daily_polls')
+    .select('poll_date, winner_accompaniment_recipe_id')
+    .eq('flat_id', flatId)
+    .eq('status', 'dispatched')
+    .not('winner_accompaniment_recipe_id', 'is', null)
+    .order('poll_date', { ascending: false });
+
+  const lastServedAt = new Map<string, string | undefined>();
+  for (const row of history ?? []) {
+    if (row.winner_accompaniment_recipe_id && !lastServedAt.has(row.winner_accompaniment_recipe_id)) {
+      lastServedAt.set(row.winner_accompaniment_recipe_id, row.poll_date);
+    }
+  }
+
+  const winner = selectWinner(tallies, lastServedAt);
+  const accompanimentRecipeId = winner?.recipeId ?? null;
+  const accompanimentReason: AccompanimentWinnerReason = winner?.reason ?? 'auto_no_votes';
+
+  await admin
+    .from('daily_polls')
+    .update({
+      winner_accompaniment_recipe_id: accompanimentRecipeId,
+      winner_accompaniment_reason: accompanimentReason,
+    })
+    .eq('id', poll.id);
+
+  return { accompanimentRecipeId };
 }

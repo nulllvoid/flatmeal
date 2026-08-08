@@ -3,6 +3,7 @@
 // Selection logic (dietary veto, 10-day exclusion, variety heuristic,
 // seeded shuffle) lives in select-options.ts.
 
+import { fetchMemberDietProfiles } from '../_shared/flat-members.ts';
 import { createAdminClient } from '../_shared/supabase-admin.ts';
 import { istDateString, isWithinCronWindow, nowInIst } from '../_shared/ist-time.ts';
 import { logPipelineError } from '../_shared/pipeline-errors.ts';
@@ -52,15 +53,7 @@ async function createPollForFlat(
 
     if (existing) return;
 
-    const { data: memberRows, error: memberError } = await admin
-      .from('flat_members')
-      .select('profiles(diet_type, is_jain, allergies)')
-      .eq('flat_id', flatId);
-    if (memberError) throw memberError;
-
-    const members = (memberRows ?? [])
-      .map((row) => row.profiles)
-      .filter((p): p is NonNullable<typeof p> => p !== null);
+    const members = await fetchMemberDietProfiles(admin, flatId);
 
     if (members.length === 0) {
       await logPipelineError(admin, 'create_poll', { message: 'flat has no members' }, flatId);

@@ -1,12 +1,17 @@
 // close_poll — runs every 15 min via pg_cron; for each flat whose
 // poll_close_time falls in this window and has an 'open' poll today,
 // computes the winner and closes it. Winner logic lives in
-// select-winner.ts.
+// _shared/select-winner.ts. Also generates accompaniment (roti/rice/etc)
+// options for the winning dish — the accompaniment vote itself is tallied
+// later, by dispatch_cook (see daily_polls.winner_accompaniment_* comment
+// in docs/05-schema.sql for why).
 
+import { selectAccompanimentOptions, isRecipeEligible } from '../create_poll/select-options.ts';
+import { fetchMemberDietProfiles } from '../_shared/flat-members.ts';
 import { createAdminClient } from '../_shared/supabase-admin.ts';
 import { isWithinCronWindow, nowInIst } from '../_shared/ist-time.ts';
 import { logPipelineError } from '../_shared/pipeline-errors.ts';
-import { selectWinner, type VoteTally } from './select-winner.ts';
+import { selectWinner, type VoteTally } from '../_shared/select-winner.ts';
 
 Deno.serve(async (_req) => {
   const admin = createAdminClient();
@@ -110,6 +115,8 @@ async function closePollForFlat(admin: ReturnType<typeof createAdminClient>, fla
       .update({ status: 'closed', winner_recipe_id: winner.recipeId, winner_reason: winner.reason })
       .eq('id', poll.id);
 
+    await generateAccompanimentOptions(admin, poll.id, flatId, poll.poll_date, winner.recipeId);
+
     // TODO: push notification announcing the winner to flat members.
   } catch (err) {
     await logPipelineError(
@@ -119,4 +126,56 @@ async function closePollForFlat(admin: ReturnType<typeof createAdminClient>, fla
       flatId
     );
   }
+}
+
+// Picks accompaniment (roti/rice/etc) options for the just-decided main
+// dish. Candidates are curated per main dish via recipe_accompaniments, so
+// this can't run until winner_recipe_id is known (see
+// docs/05-schema.sql's daily_polls.winner_accompaniment_* comment). If the
+// winning dish has no curated accompaniments (e.g. Vegetable Pulao IS the
+// starch), stamps winner_accompaniment_reason='none_available' immediately
+// so the UI can render "no accompaniment tonight" without waiting for
+// dispatch_cook.
+async function generateAccompanimentOptions(
+  admin: ReturnType<typeof createAdminClient>,
+  pollId: string,
+  flatId: string,
+  pollDate: string,
+  winnerRecipeId: string
+) {
+  const { data: mappingRows, error: mappingError } = await admin
+    .from('recipe_accompaniments')
+    .select('accompaniment_recipe_id, sort_order, recipes:accompaniment_recipe_id(is_active, diet_class, jain_ok, allergens)')
+    .eq('main_recipe_id', winnerRecipeId);
+  if (mappingError) throw mappingError;
+
+  const members = await fetchMemberDietProfiles(admin, flatId);
+
+  const eligible = (mappingRows ?? [])
+    .filter((row) => row.recipes?.is_active)
+    .filter((row) =>
+      isRecipeEligible(
+        {
+          id: row.accompaniment_recipe_id,
+          cuisine: '',
+          base: '',
+          diet_class: row.recipes!.diet_class,
+          jain_ok: row.recipes!.jain_ok,
+          allergens: row.recipes!.allergens,
+        },
+        members
+      )
+    )
+    .map((row) => ({ recipeId: row.accompaniment_recipe_id, sortOrder: row.sort_order }));
+
+  const selectedIds = selectAccompanimentOptions({ flatId, pollDate, validAccompaniments: eligible });
+
+  if (selectedIds.length === 0) {
+    await admin.from('daily_polls').update({ winner_accompaniment_reason: 'none_available' }).eq('id', pollId);
+    return;
+  }
+
+  await admin.from('poll_accompaniment_options').insert(
+    selectedIds.map((recipeId, index) => ({ poll_id: pollId, recipe_id: recipeId, position: index + 1 }))
+  );
 }

@@ -13,7 +13,7 @@ export default function TodayScreen() {
   const router = useRouter();
   const session = useSession();
   const flatId = useMyFlat(session);
-  const { poll, headcount, castVote, setOutToday } = useTodayPoll(flatId, session?.user.id);
+  const { poll, headcount, castVote, castAccompanimentVote, setOutToday } = useTodayPoll(flatId, session?.user.id);
 
   if (poll === undefined) {
     return null; // loading
@@ -33,6 +33,7 @@ export default function TodayScreen() {
   }
 
   const winner = poll.options.find((o) => o.recipeId === poll.winnerRecipeId);
+  const accompanimentWinner = poll.accompanimentOptions.find((a) => a.recipeId === poll.winnerAccompanimentRecipeId);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -82,7 +83,10 @@ export default function TodayScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               Tonight&apos;s winner
             </ThemedText>
-            <ThemedText type="subtitle">{winner.name}</ThemedText>
+            <ThemedText type="subtitle">
+              {winner.name}
+              {accompanimentWinner ? ` with ${accompanimentWinner.name}` : ''}
+            </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {winner.voteCount} vote{winner.voteCount === 1 ? '' : 's'}
               {poll.winnerReason === 'tiebreak_lru' ? ' (tie-break)' : ''}
@@ -101,6 +105,30 @@ export default function TodayScreen() {
                 </ThemedText>
               </Pressable>
             </ThemedView>
+          </ThemedView>
+        )}
+
+        {poll.accompanimentVotingOpen && (
+          <ThemedView style={styles.optionsList}>
+            <ThemedText type="subtitle">What should it come with?</ThemedText>
+            {poll.accompanimentOptions.map((option) => (
+              <Pressable
+                key={option.recipeId}
+                onPress={() => castAccompanimentVote(option.recipeId)}
+                style={({ pressed }) => [
+                  styles.optionCard,
+                  option.votedByMe && styles.optionCardSelected,
+                  pressed && styles.optionCardPressed,
+                ]}>
+                <ThemedText type="default" style={styles.optionName}>
+                  {option.name}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {option.voteCount} vote{option.voteCount === 1 ? '' : 's'}
+                  {option.voterDisplayNames.length > 0 ? ` — ${option.voterDisplayNames.join(', ')}` : ''}
+                </ThemedText>
+              </Pressable>
+            ))}
           </ThemedView>
         )}
       </ScrollView>

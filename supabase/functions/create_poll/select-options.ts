@@ -46,7 +46,9 @@ export function isRecipeEligible(recipe: RecipeCandidate, members: MemberDiet[])
 
 // Mulberry32 — small deterministic PRNG seeded from a string, so selection
 // is reproducible for a given (flat_id, poll_date) without a DB-side seed.
-function seededRng(seed: string): () => number {
+// Exported so close_poll's accompaniment selection can reuse it with its own
+// seed string, rather than duplicating a PRNG.
+export function seededRng(seed: string): () => number {
   let h = 1779033703 ^ seed.length;
   for (let i = 0; i < seed.length; i++) {
     h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
@@ -110,4 +112,26 @@ export function selectPollOptions(params: {
   // No window satisfies variety (e.g. pool has only one cuisine/base) —
   // variety is a soft heuristic, so just return the first 3.
   return shuffled.slice(0, 3).map((r) => r.id);
+}
+
+// Accompaniment (roti/rice/etc) option selection — called by close_poll once
+// the main dish winner is known (see docs/05-schema.sql's
+// daily_polls.winner_accompaniment_* comment for why this can't happen at
+// create_poll time). No 10-day exclusion or cuisine/base variety heuristic
+// here — those are main-dish-only concerns; this just seeded-shuffles the
+// curated, dietary-filtered candidate set for reproducibility.
+export function selectAccompanimentOptions(params: {
+  flatId: string;
+  pollDate: string;
+  validAccompaniments: { recipeId: string; sortOrder: number }[]; // pre-filtered to is_active + dietary-eligible
+}): string[] {
+  const { flatId, pollDate, validAccompaniments } = params;
+  if (validAccompaniments.length === 0) return [];
+
+  // Distinct seed suffix so this shuffle doesn't correlate with the
+  // main-dish shuffle for the same (flatId, pollDate).
+  const rng = seededRng(`${flatId}:${pollDate}:accompaniment`);
+  const sorted = [...validAccompaniments].sort((a, b) => a.sortOrder - b.sortOrder);
+  const shuffled = shuffle(sorted, rng);
+  return shuffled.slice(0, 3).map((a) => a.recipeId);
 }

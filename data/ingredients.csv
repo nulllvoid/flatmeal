@@ -72,6 +72,21 @@ rajma,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪ�
 rajma,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,7
 rajma,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,8
 rajma,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+dal-fry,Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ,15,g,protein,false,1
+dal-fry,Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ,15,g,protein,false,2
+dal-fry,Moong dal,मूंग दाल,ಹೆಸರು ಬೇಳೆ,15,g,protein,false,3
+dal-fry,Masoor dal,मसूर दाल,ಮಸೂರ್ ಬೇಳೆ,15,g,protein,false,4
+dal-fry,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,5
+dal-fry,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,6
+dal-fry,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,7
+dal-fry,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,8
+dal-fry,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,9
+dal-fry,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,10
+dal-fry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,11
+dal-fry,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,12
+dal-fry,"Whole spices (bay leaf, cinnamon, cloves)",खड़े मसाले,"ಇಡೀ ಮಸಾಲೆ (ಚಕ್ಕೆ, ಲವಂಗ)",1,piece,staple,true,13
+dal-fry,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.5,piece,staple,true,14
+dal-fry,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,15
 dal-makhani,Whole black urad dal,साबुत काली उड़द,ಕಪ್ಪು ಉದ್ದಿನ ಬೇಳೆ,50,g,protein,false,1
 dal-makhani,Rajma,राजमा,ರಾಜ್ಮಾ,15,g,protein,false,2
 dal-makhani,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,3

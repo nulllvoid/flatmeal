@@ -7,6 +7,7 @@
 - `ingredients.csv` — 451 rows: per-person quantities in buyable units, hi/kn names joined from the glossary, staples flagged.
 - `ingredient-glossary.csv` — one row per unique ingredient with Hindi + Kannada names. Fix a translation once here, it propagates everywhere on regeneration.
 - `expansion-backlog.md` — the next 32 dishes to reach the 80-dish target, prioritized.
+- `recipe-accompaniments.csv` — hand-maintained (not part of the generator), curates which roti/rice accompaniment(s) each main dish offers a vote on. A main dish absent from this file gets no accompaniment vote — correct for self-contained meals (biryani, pulao, fried rice, khichdi, dosa, curd rice) that already ARE the starch, and it's the expected state for any new dish added to `recipes.csv` until someone maps it here.
 
 ## Rules (enforced by the generator's validation)
 

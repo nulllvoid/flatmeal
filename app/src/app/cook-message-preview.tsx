@@ -5,24 +5,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-
-// TODO: replace with dispatch_log row for today's poll (payload_en,
-// payload_translated, status) fetched/subscribed via Supabase.
-const MOCK_COOK_NAME = 'Lakshmi';
-const MOCK_COOK_PHONE = '+919900000000';
-const MOCK_STATUS: 'queued' | 'sent' | 'delivered' | 'failed' = 'queued';
-const MOCK_EN = `Hello ${MOCK_COOK_NAME}\nToday's meal: Palak Paneer\nPlease cook for 3 people.\n\nIngredients: Spinach 2 bunches, Paneer 200g, Onion 2, Tomato 2\n\nMethod:\nWash and blanch the spinach...\n\nNote: —`;
-const MOCK_HI = `नमस्ते ${MOCK_COOK_NAME} 🙏\nआज का खाना: पालक पनीर\n3 लोगों के लिए बनाना है।\n\nसामग्री: पालक 2 गुच्छे, पनीर 200 ग्राम, प्याज़ 2, टमाटर 2\n\nबनाने का तरीका:\nपालक को धोकर 2 मिनट उबालें...\n\nनोट: —`;
+import { useCookDispatch } from '@/hooks/use-cook-dispatch';
+import { useMyFlat } from '@/hooks/use-my-flat';
+import { useSession } from '@/hooks/use-session';
 
 export default function CookMessagePreviewScreen() {
+  const session = useSession();
+  const flatId = useMyFlat(session);
+  const { dispatch } = useCookDispatch(flatId);
   const [showEnglish, setShowEnglish] = useState(false);
 
-  const isPreDispatch = MOCK_STATUS === 'queued';
-  const failed = MOCK_STATUS === 'failed';
+  if (dispatch === undefined) {
+    return null; // loading
+  }
+
+  if (dispatch === null) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        <ThemedView style={styles.container}>
+          <ThemedText type="subtitle">No cook message yet</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            This shows up once tonight&apos;s poll has closed and a cook is set in Settings.
+          </ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
+
+  const isPreDispatch = dispatch.status === 'queued';
+  const failed = dispatch.status === 'failed';
+  const body = showEnglish ? dispatch.payloadEn : dispatch.payloadTranslated;
 
   function openWhatsAppFallback() {
-    const text = encodeURIComponent(MOCK_HI);
-    Linking.openURL(`https://wa.me/${MOCK_COOK_PHONE.replace('+', '')}?text=${text}`);
+    if (!dispatch) return;
+    const text = encodeURIComponent(dispatch.payloadTranslated || dispatch.payloadEn);
+    Linking.openURL(`https://wa.me/${dispatch.cookPhone.replace('+', '')}?text=${text}`);
   }
 
   return (
@@ -30,22 +47,20 @@ export default function CookMessagePreviewScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <ThemedView style={styles.headerRow}>
           <ThemedText type="smallBold" themeColor="textSecondary">
-            {isPreDispatch ? 'Will be sent at dispatch time' : `Status: ${MOCK_STATUS}`}
+            {isPreDispatch ? 'Will be sent at dispatch time' : `Status: ${dispatch.status}`}
           </ThemedText>
-          <Pressable onPress={() => setShowEnglish((v) => !v)}>
-            <ThemedText type="linkPrimary">{showEnglish ? 'Show translated' : 'Show English'}</ThemedText>
-          </Pressable>
+          {!isPreDispatch && (
+            <Pressable onPress={() => setShowEnglish((v) => !v)}>
+              <ThemedText type="linkPrimary">{showEnglish ? 'Show translated' : 'Show English'}</ThemedText>
+            </Pressable>
+          )}
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.messageBox}>
-          <ThemedText type="default">{showEnglish ? MOCK_EN : MOCK_HI}</ThemedText>
+          <ThemedText type="default">
+            {isPreDispatch ? `Cook: ${dispatch.cookName}\nMessage composes at dispatch time.` : body}
+          </ThemedText>
         </ThemedView>
-
-        {isPreDispatch && (
-          <Pressable style={styles.secondaryButton}>
-            <ThemedText type="smallBold">Edit flat note</ThemedText>
-          </Pressable>
-        )}
 
         {failed && (
           <Pressable style={styles.whatsAppButton} onPress={openWhatsAppFallback}>
@@ -73,14 +88,6 @@ const styles = StyleSheet.create({
   messageBox: {
     padding: Spacing.three,
     borderRadius: Spacing.three,
-  },
-  secondaryButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.two,
-    borderWidth: 1,
-    borderColor: '#3c87f7',
   },
   whatsAppButton: {
     paddingVertical: Spacing.three,

@@ -13,19 +13,21 @@
 //   4. Translation: read recipe_translations(recipe_id, cook.language) if
 //      present; else call Google Translate and insert with
 //      reviewed_at = null (flagged for human review). flat_note is always
-//      live-translated (short, dynamic, never cached).
+//      live-translated (short, dynamic, never cached). If no translation is
+//      cached AND GOOGLE_TRANSLATE_API_KEY is unset, falls back to the
+//      English payload rather than blocking dispatch.
 //   5. Fill WhatsApp template variables, call BSP send API — unless
 //      DISPATCH_MODE=mock, which skips the network call and logs
 //      status='mocked' instead. This must work end-to-end before Meta
-//      template approval lands.
+//      template approval lands. Live BSP send is not implemented (no BSP
+//      account provisioned yet) — mode='live' logs status='failed'.
 //   6. Insert dispatch_log row; wa_webhook updates status afterwards.
-//
-// TODO: implement steps 1-5; this stub lays out control flow, the mock/live
-// branch, and idempotency (skip flats already dispatched today).
 
 import { createAdminClient } from '../_shared/supabase-admin.ts';
 import { isWithinCronWindow, nowInIst } from '../_shared/ist-time.ts';
 import { logPipelineError } from '../_shared/pipeline-errors.ts';
+import { composeEnglishPayload, composeIngredientLine, type RecipeIngredientRow } from './compose-payload.ts';
+import { translateText } from './translate.ts';
 
 type DispatchMode = 'mock' | 'live';
 
@@ -64,7 +66,7 @@ async function dispatchForFlat(
   try {
     const { data: poll, error: pollError } = await admin
       .from('daily_polls')
-      .select('id, winner_recipe_id, flat_note')
+      .select('id, poll_date, winner_recipe_id, flat_note')
       .eq('flat_id', flatId)
       .eq('status', 'closed')
       .order('poll_date', { ascending: false })
@@ -86,21 +88,60 @@ async function dispatchForFlat(
       return;
     }
 
-    // TODO: recompute headcount from day_attendance, scale
-    // recipe_ingredients, compose English payload, resolve/create
-    // recipe_translations, live-translate poll.flat_note.
-    const headcount = 0;
-    const payloadEn = '';
-    const payloadTranslated = '';
+    // Step 1: recompute headcount as of now, not as of poll close.
+    const [{ data: memberRows }, { data: attendanceRows }, { data: recipe }, { data: ingredientRows }] =
+      await Promise.all([
+        admin.from('flat_members').select('user_id').eq('flat_id', flatId),
+        admin
+          .from('day_attendance')
+          .select('user_id, is_out')
+          .eq('flat_id', flatId)
+          .eq('poll_date', poll.poll_date),
+        admin.from('recipes').select('name, instructions_en').eq('id', poll.winner_recipe_id).single(),
+        admin
+          .from('recipe_ingredients')
+          .select('name_en, name_hi, name_kn, qty_per_person, unit, is_staple, sort_order')
+          .eq('recipe_id', poll.winner_recipe_id)
+          .order('sort_order'),
+      ]);
+
+    const outUserIds = new Set((attendanceRows ?? []).filter((a) => a.is_out).map((a) => a.user_id));
+    const headcount = Math.max((memberRows ?? []).length - outUserIds.size, 0);
+    const ingredients: RecipeIngredientRow[] = ingredientRows ?? [];
+
+    // Step 3: English payload (dish, headcount, ingredients, method, note).
+    const payloadEn = composeEnglishPayload({
+      dishName: recipe?.name ?? 'tonight\'s dinner',
+      headcount,
+      ingredients,
+      instructions: recipe?.instructions_en ?? '',
+      flatNote: poll.flat_note,
+    });
+
+    // Step 4: translation — cached recipe_translations first; else live
+    // Google Translate (flagged reviewed_at=null) if a key is configured;
+    // else fall back to English so dispatch is never blocked on it.
+    const payloadTranslated = await composeTranslatedPayload(admin, {
+      recipeId: poll.winner_recipe_id,
+      language: cook.language as 'hi' | 'kn' | 'en',
+      dishName: recipe?.name ?? 'tonight\'s dinner',
+      headcount,
+      ingredients,
+      englishInstructions: recipe?.instructions_en ?? '',
+      flatNote: poll.flat_note,
+      fallback: payloadEn,
+    });
 
     let status: 'mocked' | 'sent' | 'failed' = 'mocked';
     let bspMessageId: string | null = null;
     let error: string | null = null;
 
     if (mode === 'live') {
-      // TODO: call BSP send API with filled template variables.
+      // No BSP account provisioned yet (docs/06-whatsapp-integration.md
+      // "Setup" is a manual, day-1 prerequisite not yet done) — live send
+      // cannot succeed until a BSP API key/account exists.
       status = 'failed';
-      error = 'live dispatch not yet implemented';
+      error = 'live dispatch not yet implemented — no BSP account configured';
     }
 
     await admin.from('dispatch_log').insert({
@@ -124,4 +165,70 @@ async function dispatchForFlat(
       flatId
     );
   }
+}
+
+// Step 4: prefer the reviewed cache; otherwise machine-translate and cache
+// it flagged for human review (reviewed_at stays null until someone signs
+// off — docs/06 "Quality gate before pilot"). flat_note is short and
+// dynamic so it's translated live every time, never cached. English cook
+// language skips translation entirely.
+async function composeTranslatedPayload(
+  admin: ReturnType<typeof createAdminClient>,
+  params: {
+    recipeId: string;
+    language: 'hi' | 'kn' | 'en';
+    dishName: string;
+    headcount: number;
+    ingredients: RecipeIngredientRow[];
+    englishInstructions: string;
+    flatNote: string | null;
+    fallback: string;
+  }
+): Promise<string> {
+  const { recipeId, language, dishName, headcount, ingredients, englishInstructions, flatNote, fallback } = params;
+
+  if (language === 'en') return fallback;
+
+  const ingredientLine = composeIngredientLine(ingredients, headcount, language);
+
+  const { data: cached } = await admin
+    .from('recipe_translations')
+    .select('instructions')
+    .eq('recipe_id', recipeId)
+    .eq('language', language)
+    .maybeSingle();
+
+  let instructions = cached?.instructions ?? null;
+
+  if (!instructions) {
+    instructions = await translateText(englishInstructions, language);
+    if (instructions) {
+      // Cached with reviewed_at left null — flags it for the pre-pilot
+      // native-speaker review pass, never presented as pre-reviewed.
+      await admin
+        .from('recipe_translations')
+        .insert({ recipe_id: recipeId, language, instructions, reviewed_at: null })
+        .select('recipe_id')
+        .maybeSingle();
+    }
+  }
+
+  if (!instructions) {
+    // No cache and no translate key configured — dispatch must not block on
+    // this, so the cook gets the English payload instead of nothing.
+    return fallback;
+  }
+
+  const translatedNote = flatNote && flatNote.trim() ? await translateText(flatNote, language) : null;
+
+  return [
+    `Today's meal: ${dishName}`,
+    `Please cook for ${headcount} people.`,
+    '',
+    `Ingredients: ${ingredientLine}`,
+    '',
+    `Method:\n${instructions}`,
+    '',
+    `Note: ${translatedNote ?? flatNote ?? '—'}`,
+  ].join('\n');
 }

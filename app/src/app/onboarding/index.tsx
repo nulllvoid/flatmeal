@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,27 +21,30 @@ export default function OnboardingEmailScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const ensureProfileThenContinue = useCallback(
+    async (userId: string, emailAddr: string) => {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        await supabase.from('profiles').insert({ id: userId, display_name: emailAddr || 'New member' });
+      }
+
+      router.replace('/onboarding/create-flat');
+    },
+    [router]
+  );
+
   // On web, clicking the magic link redirects back to this same page with
   // the session already established (detectSessionInUrl) — pick that up
   // and continue into profile creation once it lands.
   useEffect(() => {
     if (!session) return;
-    ensureProfileThenContinue(session.user.id, session.user.email ?? '');
-  }, [session]);
-
-  async function ensureProfileThenContinue(userId: string, emailAddr: string) {
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (!existingProfile) {
-      await supabase.from('profiles').insert({ id: userId, display_name: emailAddr || 'New member' });
-    }
-
-    router.replace('/onboarding/create-flat');
-  }
+    void Promise.resolve().then(() => ensureProfileThenContinue(session.user.id, session.user.email ?? ''));
+  }, [session, ensureProfileThenContinue]);
 
   async function sendMagicLink() {
     setError(null);

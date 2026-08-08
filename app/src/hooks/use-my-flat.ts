@@ -10,21 +10,24 @@ export function useMyFlat(session: Session | null | undefined) {
 
   useEffect(() => {
     if (session === undefined) return; // still loading session
-    if (session === null) {
-      setFlatId(null);
-      return;
-    }
 
     let cancelled = false;
-    supabase
-      .from('flat_members')
-      .select('flat_id')
-      .eq('user_id', session.user.id)
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setFlatId(data?.flat_id ?? null);
+
+    if (session === null) {
+      Promise.resolve().then(() => {
+        if (!cancelled) setFlatId(null);
       });
+    } else {
+      supabase
+        .from('flat_members')
+        .select('flat_id')
+        .eq('user_id', session.user.id)
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!cancelled) setFlatId(data?.flat_id ?? null);
+        });
+    }
 
     return () => {
       cancelled = true;

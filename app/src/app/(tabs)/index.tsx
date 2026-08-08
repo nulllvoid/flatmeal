@@ -77,7 +77,7 @@ export default function TodayScreen() {
           </ThemedView>
         )}
 
-        {poll.status === 'closed' && winner && (
+        {(poll.status === 'closed' || poll.status === 'dispatched') && winner && (
           <ThemedView type="backgroundElement" style={styles.winnerCard}>
             <ThemedText type="small" themeColor="textSecondary">
               Tonight&apos;s winner

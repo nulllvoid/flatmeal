@@ -85,7 +85,7 @@ export function useTodayPoll(flatId: string | null | undefined, userId: string |
   }, [flatId, userId]);
 
   useEffect(() => {
-    load();
+    void Promise.resolve().then(load);
   }, [load]);
 
   useEffect(() => {

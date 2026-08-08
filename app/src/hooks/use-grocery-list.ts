@@ -78,7 +78,7 @@ export function useGroceryList(flatId: string | null | undefined) {
   }, [flatId]);
 
   useEffect(() => {
-    load();
+    void Promise.resolve().then(load);
   }, [load]);
 
   useEffect(() => {

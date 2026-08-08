@@ -33,6 +33,21 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+// Some sites (hebbarskitchen.com confirmed) publish full translated
+// mirrors of every post under a language-code path prefix (`/hi/...`,
+// `/kn/...`), with slugs that still match dish-name keywords — without
+// this filter, the scraper found and extracted the Kannada-language
+// version of a recipe (Kannada name, Kannada ingredients/instructions)
+// under the English `ragi-mudde` target, which is unusable for a dataset
+// whose cook-facing instructions are written in English. generate_dataset.py
+// has its own hi/kn translation step (ingredient-glossary.csv) — scraped
+// candidates should be the English source, not a pre-translated one.
+const LANGUAGE_PATH_PREFIXES = ['/hi/', '/kn/', '/ta/', '/te/', '/mr/', '/gu/', '/bn/', '/ml/', '/pa/'];
+
+function isLikelyTranslatedPath(pathname: string): boolean {
+  return LANGUAGE_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 // `keywords` are matched as substrings against the URL's last path
 // segment (the slug) — e.g. keyword "chicken korma" matches
 // ".../chicken-korma-recipe/" via slug "chicken-korma-recipe" containing
@@ -47,12 +62,14 @@ export async function discoverCandidateUrls(domain: string, keywords: string[]):
   const slugifiedKeywords = keywords.map(slugify);
 
   return allUrls.filter((url) => {
-    let path: string;
+    let parsed: URL;
     try {
-      path = slugify(new URL(url).pathname);
+      parsed = new URL(url);
     } catch {
       return false;
     }
+    if (isLikelyTranslatedPath(parsed.pathname)) return false;
+    const path = slugify(parsed.pathname);
     return slugifiedKeywords.some((kw) => path.includes(kw));
   });
 }

@@ -1,4 +1,5 @@
 name_en,name_hi,name_kn
+Amchur (dry mango powder),अमचूर,ಮಾವಿನ ಪುಡಿ
 Asafoetida (hing),हींग,ಇಂಗು
 Basmati rice,बासमती चावल,ಬಾಸ್ಮತಿ ಅಕ್ಕಿ
 Besan (gram flour),बेसन,ಕಡಲೆ ಹಿಟ್ಟು
@@ -16,6 +17,7 @@ Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ
 Chicken (curry cut),चिकन (करी कट),ಕೋಳಿ ಮಾಂಸ (ಕರಿ ಕಟ್)
 Chicken masala,चिकन मसाला,ಚಿಕನ್ ಮಸಾಲ
 Chickpeas (kabuli chana),काबुली चना,ಕಡಲೆಕಾಳು
+Chilli sauce,चिल्ली सॉस,ಚಿಲ್ಲಿ ಸಾಸ್
 Coconut milk,नारियल का दूध,ತೆಂಗಿನ ಹಾಲು
 Cooking oil,तेल,ಎಣ್ಣೆ
 Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು
@@ -27,6 +29,7 @@ Curry leaves,करी पत्ता,ಕರಿಬೇವು
 Dosa batter,डोसा बैटर,ದೋಸೆ ಹಿಟ್ಟು
 Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ
 Eggs,अंडे,ಮೊಟ್ಟೆ
+Eno fruit salt,इनो फ्रूट सॉल्ट,ಇನೋ ಫ್ರೂಟ್ ಸಾಲ್ಟ್
 Fish (slices),मछली (टुकड़े),ಮೀನು (ತುಂಡುಗಳು)
 French beans,बीन्स,ಹುರುಳಿಕಾಯಿ
 Fresh cream,क्रीम,ಕ್ರೀಮ್
@@ -38,6 +41,7 @@ Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ
 Grated coconut,कसा नारियल,ತೆಂಗಿನ ತುರಿ
 Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ
 Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ
+Ivy gourd (tindora),तिंडोरा,ತೊಂಡೆಕಾಯಿ
 Jaggery,गुड़,ಬೆಲ್ಲ
 Kasuri methi,कसूरी मेथी,ಕಸೂರಿ ಮೆಂತ್ಯ
 Lemon,नींबू,ನಿಂಬೆಹಣ್ಣು
@@ -46,27 +50,40 @@ Masoor dal,मसूर दाल,ಮಸೂರ್ ಬೇಳೆ
 Milk,दूध,ಹಾಲು
 Mint leaves,पुदीना,ಪುದೀನ
 Moong dal,मूंग दाल,ಹೆಸರು ಬೇಳೆ
+Mushroom,मशरूम,ಅಣಬೆ
 Mustard seeds,राई,ಸಾಸಿವೆ
+Mutton (curry cut),मटन (करी कट),ಮಟನ್ (ಕರಿ ಕಟ್)
 Mutton keema,मटन कीमा,ಮಟನ್ ಕೀಮಾ
 Noodles,नूडल्स,ನೂಡಲ್ಸ್
 Okra (bhindi),भिंडी,ಬೆಂಡೆಕಾಯಿ
 Onion (medium),प्याज़,ಈರುಳ್ಳಿ
 Paneer,पनीर,ಪನೀರ್
+Pav bhaji masala,पाव भाजी मसाला,ಪಾವ್ ಭಾಜಿ ಮಸಾಲ
 Peanuts,मूंगफली,ಕಡಲೆಕಾಯಿ ಬೀಜ
+Poha (flattened rice),पोहा,ಅವಲಕ್ಕಿ
 Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ
+Prawns,झींगा,ಸೀಗಡಿ
+Ragi flour (finger millet),रागी का आटा,ರಾಗಿ ಹಿಟ್ಟು
+Raisins,किशमिश,ಒಣದ್ರಾಕ್ಷಿ
 Rajma,राजमा,ರಾಜ್ಮಾ
 Rasam powder,रसम पाउडर,ರಸಂ ಪುಡಿ
+Rava (semolina),सूजी,ರವೆ
 Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ
 Rice,चावल,ಅಕ್ಕಿ
+Rice flour,चावल का आटा,ಅಕ್ಕಿ ಹಿಟ್ಟು
 Sambar powder,सांभर पाउडर,ಸಾಂಬಾರ್ ಪುಡಿ
+Schezwan sauce,शेजवान सॉस,ಶೆಜ್ವಾನ್ ಸಾಸ್
+Sev,सेव,ಸೇವ್
 Soy sauce,सोया सॉस,ಸೋಯಾ ಸಾಸ್
 Spinach (palak),पालक,ಪಾಲಕ್ ಸೊಪ್ಪು
 Spring onion,हरा प्याज़,ಹಸಿರು ಈರುಳ್ಳಿ
+Sugar,चीनी,ಸಕ್ಕರೆ
 Tamarind,इमली,ಹುಣಸೆಹಣ್ಣು
 Tomato (medium),टमाटर,ಟೊಮೇಟೊ
 Tomato ketchup,टोमैटो सॉस,ಟೊಮೇಟೊ ಸಾಸ್
 Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ
 Turmeric,हल्दी,ಅರಿಶಿನ
+Vermicelli (semiya),सेवइयां,ಶಾವಿಗೆ
 Vinegar,सिरका,ವಿನೆಗರ್
 White urad dal,सफ़ेद उड़द दाल,ಉದ್ದಿನ ಬೇಳೆ
 Whole black urad dal,साबुत काली उड़द,ಕಪ್ಪು ಉದ್ದಿನ ಬೇಳೆ

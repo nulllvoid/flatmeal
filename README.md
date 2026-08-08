@@ -16,14 +16,16 @@ A low-friction meal-planning app for shared households (flatmates) in Indian met
 | `docs/05-schema.sql` | Supabase/Postgres schema (source of truth for data model) |
 | `docs/06-whatsapp-integration.md` | BSP setup, message templates (Hindi/Kannada), dispatch flow |
 | `docs/07-roadmap-and-pilot.md` | 4-week build plan, pilot success metrics |
-| `data/recipes-template.csv` | Column template + sample rows for recipe data entry |
-| `data/ingredients-template.csv` | Column template + sample rows for per-recipe ingredients |
-| `app/` | Expo (React Native + TypeScript) app — Expo Router, 4 MVP screens scaffolded with mock data |
-| `supabase/` | Postgres migration (from `docs/05-schema.sql`) + RLS policies, Edge Function stubs, CSV seed script |
+| `data/generate_dataset.py` | Source of truth for the recipe dataset — edit here, regenerate the CSVs below |
+| `data/recipes.csv`, `data/ingredients.csv`, `data/ingredient-glossary.csv` | Generated recipe/ingredient/translation data (48 dishes) |
+| `data/recipe-accompaniments-template.csv` | Curated main-dish → accompaniment (roti/rice) mapping |
+| `app/` | Expo (React Native + TypeScript) app — Expo Router, 4 MVP screens wired to live Supabase |
+| `app/e2e/` | Multi-user Playwright suite, runs against the live Supabase project |
+| `supabase/` | Postgres migrations (from `docs/05-schema.sql`) + RLS + pg_cron, Edge Functions (`create_poll`/`close_poll`/`dispatch_cook` implemented, `wa_webhook` a stub), CSV seed script |
 
 ## Status
 
-Scaffolded. `app/` and `supabase/` exist with working structure, but no Supabase project has been created/linked yet, and screens use mock data (no live queries, no auth). Next steps: create the Supabase project (Mumbai region), apply migrations, wire up phone-OTP auth and real queries per `docs/07-roadmap-and-pilot.md` Week 1–2.
+Wired to a real Supabase project (`pcmtsfcjzoivagpslpch`) — auth, votes, grocery list, and settings all live. `create_poll`, `close_poll`, and `dispatch_cook` are implemented and scheduled via pg_cron every 15 minutes; `dispatch_cook`'s live WhatsApp send is still mock-only pending a BSP account. See `CLAUDE.md`'s "Repo status" for the current, maintained picture — this file's "Status" section lags behind by nature and should not be trusted over that one.
 
 ## Golden rules
 

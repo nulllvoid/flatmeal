@@ -1,0 +1,452 @@
+recipe_slug,name_en,name_hi,name_kn,qty_per_person,unit,category,is_staple,sort_order
+palak-paneer,Spinach (palak),पालक,ಪಾಲಕ್ ಸೊಪ್ಪು,0.7,bunch,vegetable,false,1
+palak-paneer,Paneer,पनीर,ಪನೀರ್,70,g,dairy,false,2
+palak-paneer,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,3
+palak-paneer,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.7,piece,vegetable,false,4
+palak-paneer,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,5
+palak-paneer,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,6
+palak-paneer,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,7
+palak-paneer,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,8
+palak-paneer,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+dal-tadka,Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ,60,g,protein,false,1
+dal-tadka,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,2
+dal-tadka,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,2,piece,vegetable,false,3
+dal-tadka,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,4
+dal-tadka,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,5
+dal-tadka,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.7,piece,staple,true,6
+dal-tadka,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,7
+dal-tadka,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,8
+matar-paneer,Paneer,पनीर,ಪನೀರ್,60,g,dairy,false,1
+matar-paneer,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,50,g,vegetable,false,2
+matar-paneer,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,3
+matar-paneer,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,4
+matar-paneer,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,5
+matar-paneer,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,6
+matar-paneer,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,7
+matar-paneer,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,8
+matar-paneer,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,9
+matar-paneer,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,10
+paneer-bhurji,Paneer,पनीर,ಪನೀರ್,75,g,dairy,false,1
+paneer-bhurji,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,2
+paneer-bhurji,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.7,piece,vegetable,false,3
+paneer-bhurji,Capsicum,शिमला मिर्च,ದೊಣ್ಣೆ ಮೆಣಸಿನಕಾಯಿ,0.3,piece,vegetable,false,4
+paneer-bhurji,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,5
+paneer-bhurji,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,6
+paneer-bhurji,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,7
+paneer-bhurji,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,8
+kadai-paneer,Paneer,पनीर,ಪನೀರ್,70,g,dairy,false,1
+kadai-paneer,Capsicum,शिमला मिर्च,ದೊಣ್ಣೆ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,2
+kadai-paneer,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,3
+kadai-paneer,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,4
+kadai-paneer,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,5
+kadai-paneer,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,6
+kadai-paneer,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,7
+kadai-paneer,Kasuri methi,कसूरी मेथी,ಕಸೂರಿ ಮೆಂತ್ಯ,0.3,tsp,staple,true,8
+kadai-paneer,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+paneer-butter-masala,Paneer,पनीर,ಪನೀರ್,70,g,dairy,false,1
+paneer-butter-masala,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1.5,piece,vegetable,false,2
+paneer-butter-masala,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,3
+paneer-butter-masala,Butter,मक्खन,ಬೆಣ್ಣೆ,10,g,dairy,false,4
+paneer-butter-masala,Fresh cream,क्रीम,ಕ್ರೀಮ್,15,ml,dairy,false,5
+paneer-butter-masala,Cashews,काजू,ಗೋಡಂಬಿ,8,g,other,false,6
+paneer-butter-masala,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,7
+paneer-butter-masala,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,8
+paneer-butter-masala,Kasuri methi,कसूरी मेथी,ಕಸೂರಿ ಮೆಂತ್ಯ,0.3,tsp,staple,true,9
+paneer-butter-masala,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,10
+chole,Chickpeas (kabuli chana),काबुली चना,ಕಡಲೆಕಾಳು,60,g,protein,false,1
+chole,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,2
+chole,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,3
+chole,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,4
+chole,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+chole,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,6
+chole,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,7
+chole,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,8
+chole,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+chole,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,10
+rajma,Rajma,राजमा,ರಾಜ್ಮಾ,60,g,protein,false,1
+rajma,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,2
+rajma,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,3
+rajma,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,4
+rajma,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+rajma,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,6
+rajma,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,7
+rajma,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,8
+rajma,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+dal-makhani,Whole black urad dal,साबुत काली उड़द,ಕಪ್ಪು ಉದ್ದಿನ ಬೇಳೆ,50,g,protein,false,1
+dal-makhani,Rajma,राजमा,ರಾಜ್ಮಾ,15,g,protein,false,2
+dal-makhani,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,3
+dal-makhani,Butter,मक्खन,ಬೆಣ್ಣೆ,10,g,dairy,false,4
+dal-makhani,Fresh cream,क्रीम,ಕ್ರೀಮ್,15,ml,dairy,false,5
+dal-makhani,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,6
+dal-makhani,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,7
+kadhi-pakoda,Curd,दही,ಮೊಸರು,100,g,dairy,false,1
+kadhi-pakoda,Besan (gram flour),बेसन,ಕಡಲೆ ಹಿಟ್ಟು,35,g,other,false,2
+kadhi-pakoda,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.4,piece,vegetable,false,3
+kadhi-pakoda,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,4
+kadhi-pakoda,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,5
+kadhi-pakoda,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,6
+kadhi-pakoda,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.5,piece,staple,true,7
+kadhi-pakoda,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,8
+aloo-gobi,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,1,piece,vegetable,false,1
+aloo-gobi,Cauliflower,फूलगोभी,ಹೂಕೋಸು,150,g,vegetable,false,2
+aloo-gobi,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,3
+aloo-gobi,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,4
+aloo-gobi,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,5
+aloo-gobi,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,6
+aloo-gobi,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,7
+aloo-gobi,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,8
+aloo-gobi,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,9
+bhindi-fry,Okra (bhindi),भिंडी,ಬೆಂಡೆಕಾಯಿ,150,g,vegetable,false,1
+bhindi-fry,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,2
+bhindi-fry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,3
+bhindi-fry,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,4
+bhindi-fry,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,5
+bhindi-fry,Cooking oil,तेल,ಎಣ್ಣೆ,2.5,tsp,staple,true,6
+baingan-bharta,Brinjal (large),बड़ा बैंगन,ದೊಡ್ಡ ಬದನೆಕಾಯಿ,0.5,piece,vegetable,false,1
+baingan-bharta,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,2
+baingan-bharta,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.7,piece,vegetable,false,3
+baingan-bharta,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,2,piece,vegetable,false,4
+baingan-bharta,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,5
+baingan-bharta,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,6
+baingan-bharta,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,7
+jeera-aloo,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,1.5,piece,vegetable,false,1
+jeera-aloo,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.7,tsp,staple,true,2
+jeera-aloo,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,3
+jeera-aloo,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,4
+jeera-aloo,Lemon,नींबू,ನಿಂಬೆಹಣ್ಣು,0.2,piece,vegetable,false,5
+jeera-aloo,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,6
+jeera-aloo,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,7
+mix-veg-sabzi,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,1
+mix-veg-sabzi,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,40,g,vegetable,false,2
+mix-veg-sabzi,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,0.5,piece,vegetable,false,3
+mix-veg-sabzi,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,30,g,vegetable,false,4
+mix-veg-sabzi,Capsicum,शिमला मिर्च,ದೊಣ್ಣೆ ಮೆಣಸಿನಕಾಯಿ,0.3,piece,vegetable,false,5
+mix-veg-sabzi,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,6
+mix-veg-sabzi,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,7
+mix-veg-sabzi,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,8
+mix-veg-sabzi,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,9
+mix-veg-sabzi,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,10
+mix-veg-sabzi,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,11
+mix-veg-sabzi,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,12
+mix-veg-sabzi,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,13
+mix-veg-sabzi,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,14
+aloo-matar,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,1,piece,vegetable,false,1
+aloo-matar,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,50,g,vegetable,false,2
+aloo-matar,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,3
+aloo-matar,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.7,piece,vegetable,false,4
+aloo-matar,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,5
+aloo-matar,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,6
+aloo-matar,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,7
+aloo-matar,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,8
+aloo-matar,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,9
+aloo-matar,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,10
+aloo-matar,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,11
+lauki-chana-dal,Bottle gourd (lauki),लौकी,ಸೋರೆಕಾಯಿ,150,g,vegetable,false,1
+lauki-chana-dal,Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ,40,g,protein,false,2
+lauki-chana-dal,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,3
+lauki-chana-dal,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,2,piece,vegetable,false,4
+lauki-chana-dal,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,5
+lauki-chana-dal,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,6
+lauki-chana-dal,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,7
+lauki-chana-dal,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,8
+sambar,Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ,50,g,protein,false,1
+sambar,Sambar powder,सांभर पाउडर,ಸಾಂಬಾರ್ ಪುಡಿ,1.5,tsp,staple,true,2
+sambar,Tamarind,इमली,ಹುಣಸೆಹಣ್ಣು,10,g,other,false,3
+sambar,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,4
+sambar,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,5
+sambar,Brinjal (large),बड़ा बैंगन,ದೊಡ್ಡ ಬದನೆಕಾಯಿ,0.15,piece,vegetable,false,6
+sambar,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,7
+sambar,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,8
+sambar,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,9
+sambar,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,10
+sambar,Asafoetida (hing),हींग,ಇಂಗು,0.1,tsp,staple,true,11
+sambar,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.5,piece,staple,true,12
+sambar,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,13
+sambar,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,14
+tomato-rasam,Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ,25,g,protein,false,1
+tomato-rasam,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,2
+tomato-rasam,Rasam powder,रसम पाउडर,ರಸಂ ಪುಡಿ,1.2,tsp,staple,true,3
+tomato-rasam,Tamarind,इमली,ಹುಣಸೆಹಣ್ಣು,8,g,other,false,4
+tomato-rasam,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,5
+tomato-rasam,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,6
+tomato-rasam,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,7
+tomato-rasam,Asafoetida (hing),हींग,ಇಂಗು,0.1,tsp,staple,true,8
+tomato-rasam,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,9
+tomato-rasam,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,10
+curd-rice,Rice,चावल,ಅಕ್ಕಿ,70,g,other,false,1
+curd-rice,Curd,दही,ಮೊಸರು,150,g,dairy,false,2
+curd-rice,Milk,दूध,ಹಾಲು,30,ml,dairy,false,3
+curd-rice,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,4
+curd-rice,Ginger,अदरक,ಶುಂಠಿ,5,g,vegetable,false,5
+curd-rice,Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ,5,g,protein,false,6
+curd-rice,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,7
+curd-rice,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,8
+curd-rice,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+lemon-rice,Rice,चावल,ಅಕ್ಕಿ,75,g,other,false,1
+lemon-rice,Lemon,नींबू,ನಿಂಬೆಹಣ್ಣು,0.5,piece,vegetable,false,2
+lemon-rice,Peanuts,मूंगफली,ಕಡಲೆಕಾಯಿ ಬೀಜ,10,g,other,false,3
+lemon-rice,Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ,5,g,protein,false,4
+lemon-rice,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.7,piece,vegetable,false,5
+lemon-rice,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,6
+lemon-rice,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,7
+lemon-rice,Asafoetida (hing),हींग,ಇಂಗು,0.1,tsp,staple,true,8
+lemon-rice,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,9
+lemon-rice,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,10
+tomato-rice,Rice,चावल,ಅಕ್ಕಿ,75,g,other,false,1
+tomato-rice,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1.5,piece,vegetable,false,2
+tomato-rice,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,3
+tomato-rice,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,4
+tomato-rice,Mint leaves,पुदीना,ಪುದೀನ,0.1,bunch,vegetable,false,5
+tomato-rice,"Whole spices (bay leaf, cinnamon, cloves)",खड़े मसाले,"ಇಡೀ ಮಸಾಲೆ (ಚಕ್ಕೆ, ಲವಂಗ)",1,piece,staple,true,6
+tomato-rice,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,7
+tomato-rice,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,8
+tomato-rice,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,9
+tomato-rice,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,10
+tomato-rice,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,11
+bisi-bele-bath,Rice,चावल,ಅಕ್ಕಿ,60,g,other,false,1
+bisi-bele-bath,Toor dal,अरहर दाल,ತೊಗರಿ ಬೇಳೆ,40,g,protein,false,2
+bisi-bele-bath,Sambar powder,सांभर पाउडर,ಸಾಂಬಾರ್ ಪುಡಿ,1.5,tsp,staple,true,3
+bisi-bele-bath,Tamarind,इमली,ಹುಣಸೆಹಣ್ಣು,8,g,other,false,4
+bisi-bele-bath,Jaggery,गुड़,ಬೆಲ್ಲ,5,g,other,false,5
+bisi-bele-bath,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,6
+bisi-bele-bath,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,7
+bisi-bele-bath,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,20,g,vegetable,false,8
+bisi-bele-bath,Peanuts,मूंगफली,ಕಡಲೆಕಾಯಿ ಬೀಜ,10,g,other,false,9
+bisi-bele-bath,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,10
+bisi-bele-bath,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,11
+bisi-bele-bath,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.5,piece,staple,true,12
+bisi-bele-bath,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,13
+veg-kurma,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,1
+veg-kurma,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,2
+veg-kurma,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,0.5,piece,vegetable,false,3
+veg-kurma,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,20,g,vegetable,false,4
+veg-kurma,Grated coconut,कसा नारियल,ತೆಂಗಿನ ತುರಿ,20,g,other,false,5
+veg-kurma,Cashews,काजू,ಗೋಡಂಬಿ,5,g,other,false,6
+veg-kurma,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,7
+veg-kurma,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,8
+veg-kurma,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.7,piece,vegetable,false,9
+veg-kurma,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,10
+veg-kurma,"Whole spices (bay leaf, cinnamon, cloves)",खड़े मसाले,"ಇಡೀ ಮಸಾಲೆ (ಚಕ್ಕೆ, ಲವಂಗ)",1,piece,staple,true,11
+veg-kurma,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,12
+veg-kurma,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,13
+beans-palya,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,120,g,vegetable,false,1
+beans-palya,Grated coconut,कसा नारियल,ತೆಂಗಿನ ತುರಿ,15,g,other,false,2
+beans-palya,White urad dal,सफ़ेद उड़द दाल,ಉದ್ದಿನ ಬೇಳೆ,5,g,protein,false,3
+beans-palya,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,4
+beans-palya,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,0.5,piece,staple,true,5
+beans-palya,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,6
+beans-palya,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,7
+beans-palya,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,8
+cabbage-poriyal,Cabbage,पत्ता गोभी,ಎಲೆಕೋಸು,150,g,vegetable,false,1
+cabbage-poriyal,Grated coconut,कसा नारियल,ತೆಂಗಿನ ತುರಿ,15,g,other,false,2
+cabbage-poriyal,White urad dal,सफ़ेद उड़द दाल,ಉದ್ದಿನ ಬೇಳೆ,5,g,protein,false,3
+cabbage-poriyal,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,4
+cabbage-poriyal,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,5
+cabbage-poriyal,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,6
+cabbage-poriyal,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,7
+cabbage-poriyal,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,8
+avial,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.4,piece,vegetable,false,1
+avial,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,40,g,vegetable,false,2
+avial,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,0.5,piece,vegetable,false,3
+avial,Bottle gourd (lauki),लौकी,ಸೋರೆಕಾಯಿ,60,g,vegetable,false,4
+avial,Grated coconut,कसा नारियल,ತೆಂಗಿನ ತುರಿ,25,g,other,false,5
+avial,Curd,दही,ಮೊಸರು,50,g,dairy,false,6
+avial,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.7,piece,vegetable,false,7
+avial,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,8
+avial,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,9
+avial,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,10
+avial,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,11
+puliogare,Rice,चावल,ಅಕ್ಕಿ,75,g,other,false,1
+puliogare,Tamarind,इमली,ಹುಣಸೆಹಣ್ಣು,15,g,other,false,2
+puliogare,Peanuts,मूंगफली,ಕಡಲೆಕಾಯಿ ಬೀಜ,12,g,other,false,3
+puliogare,Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ,5,g,protein,false,4
+puliogare,Jaggery,गुड़,ಬೆಲ್ಲ,5,g,other,false,5
+puliogare,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,6
+puliogare,Dried red chilli,सूखी लाल मिर्च,ಒಣ ಕೆಂಪು ಮೆಣಸಿನಕಾಯಿ,1,piece,staple,true,7
+puliogare,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,8
+puliogare,Asafoetida (hing),हींग,ಇಂಗು,0.1,tsp,staple,true,9
+puliogare,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,10
+puliogare,Cooking oil,तेल,ಎಣ್ಣೆ,2.5,tsp,staple,true,11
+dosa-with-chutney,Dosa batter,डोसा बैटर,ದೋಸೆ ಹಿಟ್ಟು,0.4,packet,other,false,1
+dosa-with-chutney,Grated coconut,कसा नारियल,ತೆಂಗಿನ ತುರಿ,25,g,other,false,2
+dosa-with-chutney,Chana dal,चना दाल,ಕಡಲೆ ಬೇಳೆ,10,g,protein,false,3
+dosa-with-chutney,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.7,piece,vegetable,false,4
+dosa-with-chutney,Ginger,अदरक,ಶುಂಠಿ,4,g,vegetable,false,5
+dosa-with-chutney,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,6
+dosa-with-chutney,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,7
+dosa-with-chutney,Cooking oil,तेल,ಎಣ್ಣೆ,2.5,tsp,staple,true,8
+veg-pulao,Basmati rice,बासमती चावल,ಬಾಸ್ಮತಿ ಅಕ್ಕಿ,80,g,other,false,1
+veg-pulao,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,2
+veg-pulao,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,3
+veg-pulao,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,4
+veg-pulao,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,25,g,vegetable,false,5
+veg-pulao,"Whole spices (bay leaf, cinnamon, cloves)",खड़े मसाले,"ಇಡೀ ಮಸಾಲೆ (ಚಕ್ಕೆ, ಲವಂಗ)",1,piece,staple,true,6
+veg-pulao,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,7
+veg-pulao,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,8
+veg-biryani,Basmati rice,बासमती चावल,ಬಾಸ್ಮತಿ ಅಕ್ಕಿ,80,g,other,false,1
+veg-biryani,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,2
+veg-biryani,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,3
+veg-biryani,Potato (medium),आलू,ಆಲೂಗಡ್ಡೆ,0.5,piece,vegetable,false,4
+veg-biryani,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,20,g,vegetable,false,5
+veg-biryani,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,6
+veg-biryani,Curd,दही,ಮೊಸರು,30,g,dairy,false,7
+veg-biryani,Biryani masala,बिरयानी मसाला,ಬಿರಿಯಾನಿ ಮಸಾಲ,1,tsp,staple,true,8
+veg-biryani,Mint leaves,पुदीना,ಪುದೀನ,0.2,bunch,vegetable,false,9
+veg-biryani,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,10
+veg-biryani,"Whole spices (bay leaf, cinnamon, cloves)",खड़े मसाले,"ಇಡೀ ಮಸಾಲೆ (ಚಕ್ಕೆ, ಲವಂಗ)",1,piece,staple,true,11
+veg-biryani,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,12
+moong-dal-khichdi,Rice,चावल,ಅಕ್ಕಿ,50,g,other,false,1
+moong-dal-khichdi,Moong dal,मूंग दाल,ಹೆಸರು ಬೇಳೆ,40,g,protein,false,2
+moong-dal-khichdi,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,3
+moong-dal-khichdi,Cumin (jeera),जीरा,ಜೀರಿಗೆ,0.4,tsp,staple,true,4
+moong-dal-khichdi,Asafoetida (hing),हींग,ಇಂಗು,0.1,tsp,staple,true,5
+moong-dal-khichdi,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,6
+veg-fried-rice,Rice,चावल,ಅಕ್ಕಿ,75,g,other,false,1
+veg-fried-rice,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,2
+veg-fried-rice,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,3
+veg-fried-rice,Capsicum,शिमला मिर्च,ದೊಣ್ಣೆ ಮೆಣಸಿನಕಾಯಿ,0.3,piece,vegetable,false,4
+veg-fried-rice,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,2,piece,vegetable,false,5
+veg-fried-rice,Spring onion,हरा प्याज़,ಹಸಿರು ಈರುಳ್ಳಿ,0.2,bunch,vegetable,false,6
+veg-fried-rice,Soy sauce,सोया सॉस,ಸೋಯಾ ಸಾಸ್,1,tsp,other,false,7
+veg-fried-rice,Vinegar,सिरका,ವಿನೆಗರ್,0.5,tsp,other,false,8
+veg-fried-rice,Black pepper (crushed),कुटी काली मिर्च,ಕರಿಮೆಣಸು ಪುಡಿ,0.3,tsp,staple,true,9
+veg-fried-rice,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,10
+hakka-noodles,Noodles,नूडल्स,ನೂಡಲ್ಸ್,80,g,other,false,1
+hakka-noodles,Cabbage,पत्ता गोभी,ಎಲೆಕೋಸು,40,g,vegetable,false,2
+hakka-noodles,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,3
+hakka-noodles,Capsicum,शिमला मिर्च,ದೊಣ್ಣೆ ಮೆಣಸಿನಕಾಯಿ,0.3,piece,vegetable,false,4
+hakka-noodles,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,3,piece,vegetable,false,5
+hakka-noodles,Spring onion,हरा प्याज़,ಹಸಿರು ಈರುಳ್ಳಿ,0.2,bunch,vegetable,false,6
+hakka-noodles,Soy sauce,सोया सॉस,ಸೋಯಾ ಸಾಸ್,1,tsp,other,false,7
+hakka-noodles,Vinegar,सिरका,ವಿನೆಗರ್,0.5,tsp,other,false,8
+hakka-noodles,Black pepper (crushed),कुटी काली मिर्च,ಕರಿಮೆಣಸು ಪುಡಿ,0.3,tsp,staple,true,9
+hakka-noodles,Cooking oil,तेल,ಎಣ್ಣೆ,2.5,tsp,staple,true,10
+chilli-paneer,Paneer,पनीर,ಪನೀರ್,75,g,dairy,false,1
+chilli-paneer,Capsicum,शिमला मिर्च,ದೊಣ್ಣೆ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,2
+chilli-paneer,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,3
+chilli-paneer,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,3,piece,vegetable,false,4
+chilli-paneer,Cornflour,कॉर्नफ्लोर,ಕಾರ್ನ್ ಫ್ಲೋರ್,10,g,other,false,5
+chilli-paneer,Soy sauce,सोया सॉस,ಸೋಯಾ ಸಾಸ್,1,tsp,other,false,6
+chilli-paneer,Tomato ketchup,टोमैटो सॉस,ಟೊಮೇಟೊ ಸಾಸ್,1,tbsp,other,false,7
+chilli-paneer,Vinegar,सिरका,ವಿನೆಗರ್,0.5,tsp,other,false,8
+chilli-paneer,Black pepper (crushed),कुटी काली मिर्च,ಕರಿಮೆಣಸು ಪುಡಿ,0.3,tsp,staple,true,9
+chilli-paneer,Cooking oil,तेल,ಎಣ್ಣೆ,3,tsp,staple,true,10
+gobi-manchurian,Cauliflower,फूलगोभी,ಹೂಕೋಸು,150,g,vegetable,false,1
+gobi-manchurian,Maida,मैदा,ಮೈದಾ,15,g,other,false,2
+gobi-manchurian,Cornflour,कॉर्नफ्लोर,ಕಾರ್ನ್ ಫ್ಲೋರ್,15,g,other,false,3
+gobi-manchurian,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,4
+gobi-manchurian,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,3,piece,vegetable,false,5
+gobi-manchurian,Spring onion,हरा प्याज़,ಹಸಿರು ಈರುಳ್ಳಿ,0.2,bunch,vegetable,false,6
+gobi-manchurian,Soy sauce,सोया सॉस,ಸೋಯಾ ಸಾಸ್,1,tsp,other,false,7
+gobi-manchurian,Tomato ketchup,टोमैटो सॉस,ಟೊಮೇಟೊ ಸಾಸ್,1,tbsp,other,false,8
+gobi-manchurian,Vinegar,सिरका,ವಿನೆಗರ್,0.5,tsp,other,false,9
+gobi-manchurian,Black pepper (crushed),कुटी काली मिर्च,ಕರಿಮೆಣಸು ಪುಡಿ,0.3,tsp,staple,true,10
+gobi-manchurian,Cooking oil,तेल,ಎಣ್ಣೆ,4,tsp,staple,true,11
+egg-bhurji,Eggs,अंडे,ಮೊಟ್ಟೆ,2,piece,protein,false,1
+egg-bhurji,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,2
+egg-bhurji,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.5,piece,vegetable,false,3
+egg-bhurji,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,4
+egg-bhurji,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+egg-bhurji,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,6
+egg-bhurji,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,7
+egg-bhurji,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,8
+egg-curry,Eggs,अंडे,ಮೊಟ್ಟೆ,1.5,piece,protein,false,1
+egg-curry,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,2
+egg-curry,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,3
+egg-curry,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,4
+egg-curry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+egg-curry,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,6
+egg-curry,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,7
+egg-curry,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,8
+egg-curry,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+egg-curry,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,10
+egg-fried-rice,Rice,चावल,ಅಕ್ಕಿ,75,g,other,false,1
+egg-fried-rice,Eggs,अंडे,ಮೊಟ್ಟೆ,1,piece,protein,false,2
+egg-fried-rice,Carrot,गाजर,ಕ್ಯಾರೆಟ್,0.3,piece,vegetable,false,3
+egg-fried-rice,French beans,बीन्स,ಹುರುಳಿಕಾಯಿ,30,g,vegetable,false,4
+egg-fried-rice,Garlic cloves,लहसुन,ಬೆಳ್ಳುಳ್ಳಿ,2,piece,vegetable,false,5
+egg-fried-rice,Spring onion,हरा प्याज़,ಹಸಿರು ಈರುಳ್ಳಿ,0.2,bunch,vegetable,false,6
+egg-fried-rice,Soy sauce,सोया सॉस,ಸೋಯಾ ಸಾಸ್,1,tsp,other,false,7
+egg-fried-rice,Black pepper (crushed),कुटी काली मिर्च,ಕರಿಮೆಣಸು ಪುಡಿ,0.3,tsp,staple,true,8
+egg-fried-rice,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,9
+masala-omelette,Eggs,अंडे,ಮೊಟ್ಟೆ,2,piece,protein,false,1
+masala-omelette,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.5,piece,vegetable,false,2
+masala-omelette,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.3,piece,vegetable,false,3
+masala-omelette,Green chilli,हरी मिर्च,ಹಸಿ ಮೆಣಸಿನಕಾಯಿ,0.5,piece,vegetable,false,4
+masala-omelette,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+masala-omelette,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,6
+masala-omelette,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,7
+chicken-curry,Chicken (curry cut),चिकन (करी कट),ಕೋಳಿ ಮಾಂಸ (ಕರಿ ಕಟ್),200,g,protein,false,1
+chicken-curry,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,2
+chicken-curry,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,3
+chicken-curry,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1.5,tsp,staple,true,4
+chicken-curry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+chicken-curry,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,6
+chicken-curry,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,7
+chicken-curry,Chicken masala,चिकन मसाला,ಚಿಕನ್ ಮಸಾಲ,1,tsp,staple,true,8
+chicken-curry,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,9
+chicken-curry,Cooking oil,तेल,ಎಣ್ಣೆ,3,tsp,staple,true,10
+chicken-curry,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,11
+butter-chicken,Chicken (curry cut),चिकन (करी कट),ಕೋಳಿ ಮಾಂಸ (ಕರಿ ಕಟ್),180,g,protein,false,1
+butter-chicken,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,2,piece,vegetable,false,2
+butter-chicken,Butter,मक्खन,ಬೆಣ್ಣೆ,15,g,dairy,false,3
+butter-chicken,Fresh cream,क्रीम,ಕ್ರೀಮ್,20,ml,dairy,false,4
+butter-chicken,Curd,दही,ಮೊಸರು,30,g,dairy,false,5
+butter-chicken,Cashews,काजू,ಗೋಡಂಬಿ,8,g,other,false,6
+butter-chicken,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,7
+butter-chicken,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,8
+butter-chicken,Kasuri methi,कसूरी मेथी,ಕಸೂರಿ ಮೆಂತ್ಯ,0.3,tsp,staple,true,9
+chicken-biryani,Chicken (curry cut),चिकन (करी कट),ಕೋಳಿ ಮಾಂಸ (ಕರಿ ಕಟ್),200,g,protein,false,1
+chicken-biryani,Basmati rice,बासमती चावल,ಬಾಸ್ಮತಿ ಅಕ್ಕಿ,80,g,other,false,2
+chicken-biryani,Curd,दही,ಮೊಸರು,40,g,dairy,false,3
+chicken-biryani,Biryani masala,बिरयानी मसाला,ಬಿರಿಯಾನಿ ಮಸಾಲ,1.5,tsp,staple,true,4
+chicken-biryani,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,5
+chicken-biryani,Mint leaves,पुदीना,ಪುದೀನ,0.2,bunch,vegetable,false,6
+chicken-biryani,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,7
+chicken-biryani,"Whole spices (bay leaf, cinnamon, cloves)",खड़े मसाले,"ಇಡೀ ಮಸಾಲೆ (ಚಕ್ಕೆ, ಲವಂಗ)",1,piece,staple,true,8
+chicken-biryani,Ghee,घी,ತುಪ್ಪ,1,tsp,staple,true,9
+pepper-chicken,Chicken (curry cut),चिकन (करी कट),ಕೋಳಿ ಮಾಂಸ (ಕರಿ ಕಟ್),180,g,protein,false,1
+pepper-chicken,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,2
+pepper-chicken,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,3
+pepper-chicken,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,4
+pepper-chicken,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,5
+pepper-chicken,Black pepper (crushed),कुटी काली मिर्च,ಕರಿಮೆಣಸು ಪುಡಿ,1,tsp,staple,true,6
+pepper-chicken,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,7
+pepper-chicken,Cooking oil,तेल,ಎಣ್ಣೆ,3,tsp,staple,true,8
+chicken-fry,Chicken (curry cut),चिकन (करी कट),ಕೋಳಿ ಮಾಂಸ (ಕರಿ ಕಟ್),180,g,protein,false,1
+chicken-fry,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,2
+chicken-fry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,3
+chicken-fry,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.7,tsp,staple,true,4
+chicken-fry,Lemon,नींबू,ನಿಂಬೆಹಣ್ಣು,0.3,piece,vegetable,false,5
+chicken-fry,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,6
+chicken-fry,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.3,piece,vegetable,false,7
+chicken-fry,Cooking oil,तेल,ಎಣ್ಣೆ,3,tsp,staple,true,8
+keema-matar,Mutton keema,मटन कीमा,ಮಟನ್ ಕೀಮಾ,150,g,protein,false,1
+keema-matar,Green peas,हरी मटर,ಹಸಿರು ಬಟಾಣಿ,40,g,vegetable,false,2
+keema-matar,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,1,piece,vegetable,false,3
+keema-matar,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,1,piece,vegetable,false,4
+keema-matar,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,5
+keema-matar,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,6
+keema-matar,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,7
+keema-matar,Coriander powder,धनिया पाउडर,ಧನಿಯಾ ಪುಡಿ,0.4,tsp,staple,true,8
+keema-matar,Garam masala,गरम मसाला,ಗರಂ ಮಸಾಲ,0.3,tsp,staple,true,9
+keema-matar,Cooking oil,तेल,ಎಣ್ಣೆ,3,tsp,staple,true,10
+keema-matar,Coriander leaves,हरा धनिया,ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು,0.1,bunch,vegetable,false,11
+fish-fry,Fish (slices),मछली (टुकड़े),ಮೀನು (ತುಂಡುಗಳು),200,g,protein,false,1
+fish-fry,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.7,tsp,staple,true,2
+fish-fry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,3
+fish-fry,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,4
+fish-fry,Lemon,नींबू,ನಿಂಬೆಹಣ್ಣು,0.3,piece,vegetable,false,5
+fish-fry,Cornflour,कॉर्नफ्लोर,ಕಾರ್ನ್ ಫ್ಲೋರ್,10,g,other,false,6
+fish-fry,Cooking oil,तेल,ಎಣ್ಣೆ,3,tsp,staple,true,7
+fish-curry,Fish (slices),मछली (टुकड़े),ಮೀನು (ತುಂಡುಗಳು),200,g,protein,false,1
+fish-curry,Coconut milk,नारियल का दूध,ತೆಂಗಿನ ಹಾಲು,60,ml,other,false,2
+fish-curry,Tamarind,इमली,ಹುಣಸೆಹಣ್ಣು,8,g,other,false,3
+fish-curry,Onion (medium),प्याज़,ಈರುಳ್ಳಿ,0.7,piece,vegetable,false,4
+fish-curry,Tomato (medium),टमाटर,ಟೊಮೇಟೊ,0.7,piece,vegetable,false,5
+fish-curry,Ginger-garlic paste,अदरक-लहसुन पेस्ट,ಶುಂಠಿ-ಬೆಳ್ಳುಳ್ಳಿ ಪೇಸ್ಟ್,1,tsp,staple,true,6
+fish-curry,Mustard seeds,राई,ಸಾಸಿವೆ,0.3,tsp,staple,true,7
+fish-curry,Curry leaves,करी पत्ता,ಕರಿಬೇವು,0.2,bunch,staple,true,8
+fish-curry,Turmeric,हल्दी,ಅರಿಶಿನ,0.2,tsp,staple,true,9
+fish-curry,Red chilli powder,लाल मिर्च पाउडर,ಕೆಂಪು ಮೆಣಸಿನ ಪುಡಿ,0.3,tsp,staple,true,10
+fish-curry,Cooking oil,तेल,ಎಣ್ಣೆ,2,tsp,staple,true,11

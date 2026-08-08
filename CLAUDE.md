@@ -6,11 +6,11 @@ Read this before doing anything. Then read `docs/02-prd.md` and `docs/03-mvp-spe
 
 ## Repo status
 
-Scaffolded, not yet wired to a real backend. `/app` is a working Expo Router app (screens are UI + mock data, no Supabase queries yet); `/supabase` has the schema migration, RLS policies, and Edge Function *stubs* (control flow + idempotency + error logging in place, core selection/scaling/translation logic still `TODO`). No Supabase project has been created or linked yet — nothing here has been deployed.
+Wired to a real Supabase project (`pcmtsfcjzoivagpslpch`) — not a local/mock setup. `/app` queries Supabase directly (auth, votes, grocery list, settings all live). `/supabase`'s `create_poll`, `close_poll`, and `dispatch_cook` Edge Functions are fully implemented (dietary veto, 10-day exclusion, variety heuristic, ingredient scaling, translation cache with graceful fallback) and deployed; `dispatch_cook`'s live BSP send is still unimplemented (mock mode only — no BSP account provisioned yet). pg_cron + pg_net are enabled and scheduled to invoke all three functions every 15 minutes (`supabase/migrations/20260108000003_pg_cron.sql`); each function self-selects which flats are due by comparing its configured time against current IST.
 
 ```
 /app          Expo app (Expo Router, TypeScript) — see app/CLAUDE.md
-/supabase     migrations/ (from docs/05-schema.sql + RLS), functions/ (create_poll, close_poll, dispatch_cook, wa_webhook — stubs), seed/ (CSV loader)
+/supabase     migrations/ (from docs/05-schema.sql + RLS + pg_cron), functions/ (create_poll, close_poll, dispatch_cook implemented; wa_webhook still a stub), seed/ (CSV loader)
 /data         recipe + ingredient CSVs (source of truth for seeding)
 /docs         product/architecture docs
 ```
@@ -24,11 +24,13 @@ Scaffolded, not yet wired to a real backend. `/app` is a working Expo Router app
 - Copy `app/.env.example` to `app/.env` and fill in `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` before the app can reach a real Supabase project. `src/lib/supabase.ts` throws at import time if these are missing.
 - No test runner is configured yet.
 
-### Supabase (local files only — no CLI project linked)
+### Supabase (linked to the live project — most work happens against it directly, not local)
 
-- `supabase/config.toml`, `supabase/migrations/`, `supabase/functions/`, `supabase/seed/` exist as files but nothing has been pushed to a live or local Supabase instance.
-- To actually run this: install the Supabase CLI, `supabase init`-equivalent is already done (config.toml exists), `supabase start` for local dev, `supabase db push` to apply migrations, `supabase functions serve` to run Edge Functions locally.
-- Seed script: `npx tsx supabase/seed/seed-recipes.ts` (needs `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` env vars; not yet added as an npm script or dependency anywhere).
+- Project ref `pcmtsfcjzoivagpslpch`. The Supabase CLI (`npx supabase`) works against it without extra login in this environment.
+- `npx supabase db push` applies new migrations from `supabase/migrations/`. `npx supabase db query --linked "<sql>"` (or `--file <path>` for multi-line SQL) runs ad-hoc queries directly — the practical way to inspect/seed data without a service-role key on hand.
+- `npx supabase functions deploy <name> --project-ref pcmtsfcjzoivagpslpch` deploys a single Edge Function; all three (`create_poll`, `close_poll`, `dispatch_cook`) have `verify_jwt = false` (see `supabase/config.toml`), so they can be curled directly with no auth header for manual testing.
+- Seed script: `npx tsx supabase/seed/seed-recipes.ts` (needs `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` env vars — not available in this dev environment; new recipe/seed data has instead been inserted via `db query` SQL directly against the live project when needed).
+- Local Supabase (`supabase start`) is not used in this workflow — `supabase/config.toml` exists but development happens against the live project.
 
 ## Doc reading order
 

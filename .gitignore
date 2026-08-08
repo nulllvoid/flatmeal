@@ -18,3 +18,9 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Scraped recipe candidates (data/scraped/) — working material staged for
+# human review before being hand-rewritten into data/generate_dataset.py,
+# not source of truth. See scripts/scrape-recipes/README.md.
+data/scraped/*
+!data/scraped/.gitkeep

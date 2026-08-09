@@ -2,8 +2,11 @@
 // round up since you can't buy half an onion; weight/volume round to a
 // sensible shopping precision). Duplicated rather than shared because Deno
 // edge functions and the Expo app don't share a module graph.
-export function scaleIngredientLabel(qtyPerPerson: number, unit: string, headcount: number): string {
-  const raw = qtyPerPerson * headcount;
+// `quantity` is the cart line's own quantity (previously flat-wide
+// headcount) — each dish now scales by its own cart quantity, not a shared
+// flat headcount.
+export function scaleIngredientLabel(qtyPerPerson: number, unit: string, quantity: number): string {
+  const raw = qtyPerPerson * quantity;
 
   switch (unit) {
     case 'piece':

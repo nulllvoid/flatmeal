@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/auth';
 import { dbQuery } from '../fixtures/db';
 import { resetPollState, triggerClosePoll, triggerDispatchCook } from '../fixtures/poll-state';
-import { castVoteAsUser, seedOpenPoll } from '../fixtures/seed-poll';
+import { addToCartAsUser, seedOpenPoll } from '../fixtures/seed-poll';
 import { TEST_FLAT_ID, TEST_USERS } from '../fixtures/test-users';
 
 test.describe('Grocery list and cook dispatch', () => {
@@ -9,15 +9,12 @@ test.describe('Grocery list and cook dispatch', () => {
     await resetPollState();
   });
 
-  test('grocery list scales ingredient quantities to headcount, and staples are separated from the buy list', async ({
+  test('grocery list scales ingredient quantities to the cart line\'s own quantity, and staples are separated from the buy list', async ({
     ownerPage,
   }) => {
     await resetPollState();
     seedOpenPoll(['palak-paneer', 'dal-tadka']);
-    castVoteAsUser(TEST_USERS.owner.id, 'palak-paneer');
-    castVoteAsUser(TEST_USERS.priya.id, 'palak-paneer');
-    castVoteAsUser(TEST_USERS.rahul.id, 'palak-paneer');
-    // All 3 flatmates present tonight (no day_attendance out-rows) -> headcount 3.
+    addToCartAsUser(TEST_USERS.owner.id, 'palak-paneer', 3); // cart quantity, not flat headcount
 
     await triggerClosePoll();
 
@@ -26,10 +23,11 @@ test.describe('Grocery list and cook dispatch', () => {
     await ownerPage.getByText('Grocery list', { exact: true }).click();
     await ownerPage.waitForTimeout(2000);
 
-    await expect(ownerPage.getByText('Scaled for 3', { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText('Palak Paneer (3)', { exact: true })).toBeVisible({ timeout: 15000 });
 
-    // Palak Paneer's Paneer is 70g/person, not a staple -> 210g at headcount
-    // 3 (scale-ingredient.ts rounds weight to the nearest 5g, so 210 is exact).
+    // Palak Paneer's Paneer is 70g/person, not a staple -> 210g at cart
+    // quantity 3 (scale-ingredient.ts rounds weight to the nearest 5g, so
+    // 210 is exact) — scaled by the cart line's own quantity, not headcount.
     await expect(ownerPage.getByText('210 g', { exact: false })).toBeVisible();
 
     // Its staple spices (ginger-garlic paste, cumin, garam masala, turmeric)
@@ -42,7 +40,7 @@ test.describe('Grocery list and cook dispatch', () => {
   test('checklist toggle persists and realtime-syncs across two flatmates', async ({ ownerPage, priyaPage }) => {
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'dal-tadka', 1);
     await triggerClosePoll();
 
     await ownerPage.reload();
@@ -78,7 +76,7 @@ test.describe('Grocery list and cook dispatch', () => {
   test('share-to-WhatsApp button is present and the "to buy" count excludes checked items', async ({ ownerPage }) => {
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'dal-tadka', 1);
     await triggerClosePoll();
 
     await ownerPage.reload();
@@ -105,7 +103,7 @@ test.describe('Grocery list and cook dispatch', () => {
   }) => {
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'dal-tadka', 1);
     await triggerClosePoll();
 
     await ownerPage.reload();
@@ -146,7 +144,7 @@ test.describe('Grocery list and cook dispatch', () => {
 
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'dal-tadka', 1);
     await triggerClosePoll();
     await triggerDispatchCook();
 

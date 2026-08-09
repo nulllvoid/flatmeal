@@ -13,9 +13,7 @@ export function seedOpenPoll(dishSlugs: string[], flatId: string = TEST_FLAT_ID,
   dbQuery(`
     insert into daily_polls (flat_id, poll_date, status)
     values ('${flatId}', '${date}', 'open')
-    on conflict (flat_id, poll_date) do update set
-      status = 'open', winner_recipe_id = null, winner_reason = null,
-      winner_accompaniment_recipe_id = null, winner_accompaniment_reason = null;
+    on conflict (flat_id, poll_date) do update set status = 'open';
 
     insert into poll_options (poll_id, recipe_id, position)
     select dp.id, r.id, v.position
@@ -26,27 +24,42 @@ export function seedOpenPoll(dishSlugs: string[], flatId: string = TEST_FLAT_ID,
   `);
 }
 
-export function castVoteAsUser(userId: string, dishSlug: string, flatId: string = TEST_FLAT_ID, date: string = todayIst()) {
-  dbQuery(`
-    insert into votes (poll_id, user_id, recipe_id)
-    select dp.id, '${userId}', r.id
-    from daily_polls dp, recipes r
-    where dp.flat_id = '${flatId}' and dp.poll_date = '${date}' and r.slug = '${dishSlug}'
-    on conflict (poll_id, user_id) do update set recipe_id = excluded.recipe_id;
-  `);
-}
-
-export function castAccompanimentVoteAsUser(
-  userId: string,
+// Seeds a poll_accompaniment_options row directly — used by tests that only
+// care about the cart/lock behavior downstream of accompaniment suggestions
+// existing, not about create_poll's own union-of-recipe_accompaniments
+// sourcing logic (which has its own coverage via triggerCreatePoll).
+export function seedAccompanimentSuggestion(
   accompanimentSlug: string,
+  position = 1,
   flatId: string = TEST_FLAT_ID,
   date: string = todayIst()
 ) {
   dbQuery(`
-    insert into accompaniment_votes (poll_id, user_id, recipe_id)
-    select dp.id, '${userId}', r.id
+    insert into poll_accompaniment_options (poll_id, recipe_id, position)
+    select dp.id, r.id, ${position}
     from daily_polls dp, recipes r
     where dp.flat_id = '${flatId}' and dp.poll_date = '${date}' and r.slug = '${accompanimentSlug}'
-    on conflict (poll_id, user_id) do update set recipe_id = excluded.recipe_id;
+    on conflict (poll_id, recipe_id) do nothing;
+  `);
+}
+
+// Adds a dish straight to the shared cart at the given quantity — the
+// server-side equivalent of a flatmate tapping a suggestion then adjusting
+// the stepper. Any flat member can add/edit any line (shared cart, not
+// per-user votes), so `userId` here only sets added_by/updated_by
+// attribution, not row identity.
+export function addToCartAsUser(
+  userId: string,
+  dishSlug: string,
+  quantity = 1,
+  flatId: string = TEST_FLAT_ID,
+  date: string = todayIst()
+) {
+  dbQuery(`
+    insert into cart_items (poll_id, recipe_id, quantity, added_by, updated_by)
+    select dp.id, r.id, ${quantity}, '${userId}', '${userId}'
+    from daily_polls dp, recipes r
+    where dp.flat_id = '${flatId}' and dp.poll_date = '${date}' and r.slug = '${dishSlug}'
+    on conflict (poll_id, recipe_id) do update set quantity = excluded.quantity, updated_by = excluded.updated_by, updated_at = now();
   `);
 }

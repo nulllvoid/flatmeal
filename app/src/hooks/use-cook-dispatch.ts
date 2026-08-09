@@ -30,7 +30,7 @@ export function useCookDispatch(flatId: string | null | undefined) {
     const [{ data: pollRow }, { data: cookRow }] = await Promise.all([
       supabase
         .from('daily_polls')
-        .select('id, status, recipes:winner_recipe_id(name)')
+        .select('id, status')
         .eq('flat_id', flatId)
         .eq('poll_date', todayIst)
         .maybeSingle(),

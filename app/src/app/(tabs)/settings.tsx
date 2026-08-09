@@ -5,11 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useFlatSettings } from '@/hooks/use-flat-settings';
 import { useMyFlat } from '@/hooks/use-my-flat';
 import { useProfile } from '@/hooks/use-profile';
 import { useSession } from '@/hooks/use-session';
+import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
 
@@ -27,6 +28,7 @@ export default function SettingsScreen() {
   const flatId = useMyFlat(session);
   const { profile, updateProfile } = useProfile(session?.user.id);
   const { data: flatData, upsertCook, leaveFlat } = useFlatSettings(flatId);
+  const theme = useTheme();
 
   const [feedback, setFeedback] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -65,16 +67,23 @@ export default function SettingsScreen() {
           <ThemedText type="smallBold">My dietary profile</ThemedText>
 
           <ThemedView style={styles.chipRow}>
-            {DIET_TYPES.map((type) => (
-              <Pressable
-                key={type}
-                onPress={() => updateProfile({ diet_type: type })}
-                style={[styles.chip, profile?.diet_type === type && styles.chipSelected]}>
-                <ThemedText type="small" style={profile?.diet_type === type ? styles.chipTextSelected : undefined}>
-                  {type}
-                </ThemedText>
-              </Pressable>
-            ))}
+            {DIET_TYPES.map((type) => {
+              const selected = profile?.diet_type === type;
+              return (
+                <Pressable
+                  key={type}
+                  onPress={() => updateProfile({ diet_type: type })}
+                  style={[
+                    styles.chip,
+                    { borderColor: theme.divider },
+                    selected && { backgroundColor: theme.accent, borderColor: theme.accent },
+                  ]}>
+                  <ThemedText type="small" style={selected ? { color: theme.background } : undefined}>
+                    {type}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
           </ThemedView>
 
           <ThemedView style={styles.rowBetween}>
@@ -95,8 +104,12 @@ export default function SettingsScreen() {
                 <Pressable
                   key={allergy}
                   onPress={() => toggleAllergy(allergy)}
-                  style={[styles.chip, selected && styles.chipSelected]}>
-                  <ThemedText type="small" style={selected ? styles.chipTextSelected : undefined}>
+                  style={[
+                    styles.chip,
+                    { borderColor: theme.divider },
+                    selected && { backgroundColor: theme.accent, borderColor: theme.accent },
+                  ]}>
+                  <ThemedText type="small" style={selected ? { color: theme.background } : undefined}>
                     {allergy}
                   </ThemedText>
                 </Pressable>
@@ -143,21 +156,25 @@ export default function SettingsScreen() {
           <ThemedText type="smallBold">Send feedback</ThemedText>
           <TextInput
             placeholder="Tell us what's not working…"
+            placeholderTextColor={theme.textSecondary}
             multiline
             value={feedback}
             onChangeText={setFeedback}
-            style={styles.feedbackInput}
+            style={[styles.feedbackInput, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.background }]}
           />
-          <Pressable style={styles.primaryButton} onPress={submitFeedback} disabled={!feedback.trim()}>
-            <ThemedText type="smallBold" style={styles.primaryButtonText}>
+          <Pressable
+            style={[styles.primaryButton, { backgroundColor: theme.accent }, !feedback.trim() && styles.disabled]}
+            onPress={submitFeedback}
+            disabled={!feedback.trim()}>
+            <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
               {feedbackSent ? 'Sent — thank you' : 'Submit'}
             </ThemedText>
           </Pressable>
         </ThemedView>
 
-        <ThemedView type="backgroundElement" style={[styles.section, styles.dangerSection]}>
+        <ThemedView type="backgroundElement" style={[styles.section, styles.dangerSection, { borderColor: theme.danger }]}>
           <Pressable onPress={handleLeaveFlat}>
-            <ThemedText type="smallBold" style={styles.dangerText}>
+            <ThemedText type="smallBold" style={{ color: theme.danger }}>
               Leave flat
             </ThemedText>
           </Pressable>
@@ -181,6 +198,7 @@ function CookSection({
   const [cookName, setCookName] = useState(cook?.name ?? '');
   const [cookPhone, setCookPhone] = useState(cook?.phone ?? '');
   const [cookLanguage, setCookLanguage] = useState(cook?.language ?? 'hi');
+  const theme = useTheme();
 
   function saveCook() {
     if (!cookName.trim() || !cookPhone.trim()) return;
@@ -193,28 +211,45 @@ function CookSection({
       <ThemedText type="small" themeColor="textSecondary">
         Changes take effect at the next dispatch.
       </ThemedText>
-      <TextInput placeholder="Cook name" value={cookName} onChangeText={setCookName} style={styles.input} />
+      <TextInput
+        placeholder="Cook name"
+        placeholderTextColor={theme.textSecondary}
+        value={cookName}
+        onChangeText={setCookName}
+        style={[styles.input, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.background }]}
+      />
       <TextInput
         placeholder="Phone (+91XXXXXXXXXX)"
+        placeholderTextColor={theme.textSecondary}
         value={cookPhone}
         onChangeText={setCookPhone}
         keyboardType="phone-pad"
-        style={styles.input}
+        style={[styles.input, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.background }]}
       />
       <ThemedView style={styles.chipRow}>
-        {COOK_LANGUAGES.map((lang) => (
-          <Pressable
-            key={lang.value}
-            onPress={() => setCookLanguage(lang.value)}
-            style={[styles.chip, cookLanguage === lang.value && styles.chipSelected]}>
-            <ThemedText type="small" style={cookLanguage === lang.value ? styles.chipTextSelected : undefined}>
-              {lang.label}
-            </ThemedText>
-          </Pressable>
-        ))}
+        {COOK_LANGUAGES.map((lang) => {
+          const selected = cookLanguage === lang.value;
+          return (
+            <Pressable
+              key={lang.value}
+              onPress={() => setCookLanguage(lang.value)}
+              style={[
+                styles.chip,
+                { borderColor: theme.divider },
+                selected && { backgroundColor: theme.accent, borderColor: theme.accent },
+              ]}>
+              <ThemedText type="small" style={selected ? { color: theme.background } : undefined}>
+                {lang.label}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
       </ThemedView>
-      <Pressable style={styles.primaryButton} onPress={saveCook} disabled={!cookName.trim() || !cookPhone.trim()}>
-        <ThemedText type="smallBold" style={styles.primaryButtonText}>
+      <Pressable
+        style={[styles.primaryButton, { backgroundColor: theme.accent }, (!cookName.trim() || !cookPhone.trim()) && styles.disabled]}
+        onPress={saveCook}
+        disabled={!cookName.trim() || !cookPhone.trim()}>
+        <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
           {cook ? 'Update cook' : 'Add cook'}
         </ThemedText>
       </Pressable>
@@ -230,27 +265,27 @@ const styles = StyleSheet.create({
   },
   section: {
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.md,
     gap: Spacing.two,
   },
   dangerSection: {
     borderWidth: 1,
-    borderColor: '#e5484d',
-  },
-  dangerText: {
-    color: '#e5484d',
   },
   feedbackInput: {
     minHeight: 80,
     textAlignVertical: 'top',
     fontSize: 16,
+    fontFamily: Fonts.body,
+    borderWidth: 1.5,
+    borderRadius: Radius.md,
+    padding: Spacing.three,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#00000030',
-    borderRadius: Spacing.two,
+    borderWidth: 1.5,
+    borderRadius: Radius.md,
     padding: Spacing.two,
     fontSize: 16,
+    fontFamily: Fonts.body,
   },
   chipRow: {
     flexDirection: 'row',
@@ -260,16 +295,8 @@ const styles = StyleSheet.create({
   chip: {
     paddingVertical: Spacing.half,
     paddingHorizontal: Spacing.two,
-    borderRadius: Spacing.four,
-    borderWidth: 1,
-    borderColor: '#00000030',
-  },
-  chipSelected: {
-    backgroundColor: '#3c87f7',
-    borderColor: '#3c87f7',
-  },
-  chipTextSelected: {
-    color: '#ffffff',
+    borderRadius: Radius.pill,
+    borderWidth: 1.5,
   },
   rowBetween: {
     flexDirection: 'row',
@@ -278,11 +305,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     paddingVertical: Spacing.three,
-    borderRadius: Spacing.two,
-    backgroundColor: '#3c87f7',
+    borderRadius: Radius.pill,
     alignItems: 'center',
   },
+  disabled: {
+    opacity: 0.45,
+  },
   primaryButtonText: {
-    color: '#ffffff',
+    fontFamily: Fonts.bodyBold,
   },
 });

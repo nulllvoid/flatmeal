@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useGroceryList } from '@/hooks/use-grocery-list';
 import { useMyFlat } from '@/hooks/use-my-flat';
 import { useSession } from '@/hooks/use-session';
+import { useTheme } from '@/hooks/use-theme';
 import type { GroceryLineView } from '@/types/domain';
 
 const CATEGORY_ORDER = ['vegetable', 'dairy', 'protein', 'other'] as const;
@@ -22,6 +23,7 @@ export default function GroceryListScreen() {
   const session = useSession();
   const flatId = useMyFlat(session);
   const { data, toggleChecked } = useGroceryList(flatId);
+  const theme = useTheme();
 
   const buyList = useMemo(() => data?.lines.filter((l) => !l.isStaple) ?? [], [data]);
   const staples = useMemo(() => data?.lines.filter((l) => l.isStaple) ?? [], [data]);
@@ -31,10 +33,10 @@ export default function GroceryListScreen() {
     if (!data) return '';
     const toBuy = buyList
       .filter((l) => !l.checked)
-      .map((l) => `- ${l.nameEn} — ${l.quantityLabel}`)
+      .map((l) => `- ${l.nameEn} — ${l.quantityLabel} (for ${l.dishName})`)
       .join('\n');
     const stapleNames = staples.map((s) => s.nameEn).join(', ');
-    return `🛒 Tonight: ${data.dishName} (${data.headcount} people)\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
+    return `🛒 Tonight: ${data.dishSummary}\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
   }, [data, buyList, staples]);
 
   async function handleShare() {
@@ -56,7 +58,7 @@ export default function GroceryListScreen() {
         <ThemedView style={styles.container}>
           <ThemedText type="subtitle">No grocery list yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            This shows up once tonight&apos;s poll has closed with a winner.
+            This shows up once something&apos;s in tonight&apos;s cart.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>
@@ -66,10 +68,7 @@ export default function GroceryListScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.container}>
-        <ThemedText type="subtitle">{data.dishName}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Scaled for {data.headcount}
-        </ThemedText>
+        <ThemedText type="subtitle">{data.dishSummary}</ThemedText>
 
         {grouped.map(({ category, items }) => (
           <ThemedView key={category} style={styles.categorySection}>
@@ -81,13 +80,19 @@ export default function GroceryListScreen() {
                 key={item.ingredientId}
                 onPress={() => toggleChecked(item.ingredientId, !item.checked)}
                 style={styles.itemRow}>
-                <ThemedView style={[styles.checkbox, item.checked && styles.checkboxChecked]} />
+                <ThemedView
+                  style={[
+                    styles.checkbox,
+                    { borderColor: theme.accent },
+                    item.checked && { backgroundColor: theme.accent },
+                  ]}
+                />
                 <ThemedView style={styles.itemTextCol}>
                   <ThemedText type="default" style={item.checked && styles.itemTextChecked}>
                     {item.nameEn}
                   </ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
-                    {item.quantityLabel}
+                    {item.quantityLabel} — for {item.dishName}
                   </ThemedText>
                 </ThemedView>
               </Pressable>
@@ -104,7 +109,7 @@ export default function GroceryListScreen() {
         )}
       </ScrollView>
 
-      <ThemedView type="backgroundElement" style={styles.footer}>
+      <ThemedView type="backgroundElement" style={[styles.footer, { borderTopColor: theme.divider }]}>
         <ThemedText type="small">{uncheckedCount} to buy</ThemedText>
         <ThemedView style={styles.footerActions}>
           <Pressable style={styles.footerButton} onPress={handleShare}>
@@ -137,12 +142,8 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: 6,
+    borderRadius: Radius.sm,
     borderWidth: 2,
-    borderColor: '#3c87f7',
-  },
-  checkboxChecked: {
-    backgroundColor: '#3c87f7',
   },
   itemTextCol: {
     flex: 1,
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
   stapleLine: {
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.md,
   },
   footer: {
     flexDirection: 'row',
@@ -161,7 +162,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.three,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#00000020',
   },
   footerActions: {
     flexDirection: 'row',
@@ -170,10 +170,11 @@ const styles = StyleSheet.create({
   footerButton: {
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.two,
+    borderRadius: Radius.pill,
     backgroundColor: '#25D366',
   },
   footerButtonText: {
+    fontFamily: Fonts.bodyBold,
     color: '#ffffff',
   },
 });

@@ -1,5 +1,8 @@
 // create_poll — runs every 15 min via pg_cron; for each flat whose
-// poll_open_time falls in this window, generates today's 3-option poll.
+// poll_open_time falls in this window, generates today's suggestion list:
+// up to 3 main-course suggestions and up to 3 accompaniment suggestions.
+// These are offers, not a ballot — flatmates build a shared cart by tapping
+// suggestions (see app/src/hooks/use-today-cart.ts), they don't vote.
 // Selection logic (dietary veto, 10-day exclusion, variety heuristic,
 // seeded shuffle) lives in select-options.ts.
 
@@ -7,7 +10,7 @@ import { fetchMemberDietProfiles } from '../_shared/flat-members.ts';
 import { createAdminClient } from '../_shared/supabase-admin.ts';
 import { istDateString, isWithinCronWindow, nowInIst } from '../_shared/ist-time.ts';
 import { logPipelineError } from '../_shared/pipeline-errors.ts';
-import { selectPollOptions } from './select-options.ts';
+import { selectAccompanimentOptionsForSuggestedMains, selectPollOptions } from './select-options.ts';
 
 const RECENT_DAYS_EXCLUSION = 10;
 
@@ -63,23 +66,21 @@ async function createPollForFlat(
     const { data: recipes, error: recipesError } = await admin
       .from('recipes')
       .select('id, cuisine, base, diet_class, jain_ok, allergens')
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .eq('kind', 'main');
     if (recipesError) throw recipesError;
 
     const cutoffDate = new Date(pollDate);
     cutoffDate.setUTCDate(cutoffDate.getUTCDate() - RECENT_DAYS_EXCLUSION);
-    const { data: recentPolls, error: recentError } = await admin
-      .from('daily_polls')
-      .select('winner_recipe_id')
-      .eq('flat_id', flatId)
-      .eq('status', 'dispatched')
-      .gte('poll_date', cutoffDate.toISOString().slice(0, 10))
-      .not('winner_recipe_id', 'is', null);
+    const { data: recentCartRows, error: recentError } = await admin
+      .from('cart_items')
+      .select('recipe_id, daily_polls!inner(flat_id, status, poll_date)')
+      .eq('daily_polls.flat_id', flatId)
+      .eq('daily_polls.status', 'dispatched')
+      .gte('daily_polls.poll_date', cutoffDate.toISOString().slice(0, 10));
     if (recentError) throw recentError;
 
-    const recentlyServedRecipeIds = new Set(
-      (recentPolls ?? []).map((p) => p.winner_recipe_id).filter((id): id is string => id !== null)
-    );
+    const recentlyServedRecipeIds = new Set((recentCartRows ?? []).map((row) => row.recipe_id));
 
     const selectedRecipeIds = selectPollOptions({
       flatId,
@@ -126,7 +127,33 @@ async function createPollForFlat(
       }))
     );
 
-    // TODO: push notification "Vote for tonight's dinner" to flat members.
+    // Accompaniment suggestions, sourced from the union of
+    // recipe_accompaniments for today's suggested mains — see
+    // select-options.ts's selectAccompanimentOptionsForSuggestedMains. Empty
+    // result is a valid, non-error state (e.g. all suggested mains already
+    // are the starch).
+    const accompanimentRecipeIds = await selectAccompanimentOptionsForSuggestedMains(admin, {
+      flatId,
+      pollDate,
+      suggestedMainRecipeIds: selectedRecipeIds,
+      members: members.map((m) => ({
+        diet_type: m.diet_type,
+        is_jain: m.is_jain,
+        allergies: m.allergies,
+      })),
+    });
+
+    if (accompanimentRecipeIds.length > 0) {
+      await admin.from('poll_accompaniment_options').insert(
+        accompanimentRecipeIds.map((recipeId, index) => ({
+          poll_id: poll.id,
+          recipe_id: recipeId,
+          position: index + 1,
+        }))
+      );
+    }
+
+    // TODO: push notification "Today's suggestions are up — add to the cart."
   } catch (err) {
     await logPipelineError(
       admin,

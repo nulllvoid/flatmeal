@@ -86,8 +86,8 @@ against shared state.
 ## Known gap this suite surfaced
 
 **The Today screen doesn't pick up a poll appearing/changing after the page
-has already mounted, without a reload.** `use-today-poll.ts`'s realtime
-subscription only exists once `poll` is non-null (`if (!poll) return;`
+has already mounted, without a reload.** `use-today-cart.ts`'s realtime
+subscription only exists once `cart` is non-null (`if (!cart) return;`
 guards the subscribe effect) — so a page that loaded while there was no
 poll yet, or while the poll was still open, never learns a poll now exists
 or has closed/dispatched without a manual refresh. Every test in this suite
@@ -111,11 +111,11 @@ e2e/
     auth.ts           — Playwright test.extend with ownerPage/priyaPage/rahulPage
     db.ts             — dbQuery() wrapper around `supabase db query --linked`
     poll-state.ts      — triggerCreatePoll/ClosePoll/DispatchCook, resetPollState
-    seed-poll.ts       — seedOpenPoll, castVoteAsUser, castAccompanimentVoteAsUser
+    seed-poll.ts       — seedOpenPoll, addToCartAsUser, seedAccompanimentSuggestion
   tests/
     settings.spec.ts              — Settings screen: profile, cook, feedback, leave-flat
-    voting-multiuser.spec.ts      — concurrent voting, realtime, out-today, dietary veto
-    poll-lifecycle.spec.ts        — close_poll: majority/tie/auto-pick/cancel, dispatched-status UI
-    accompaniment.spec.ts         — the 5-state accompaniment vote UI machine
-    grocery-and-dispatch.spec.ts  — scaling, staples, checklist realtime, dispatch_cook edge cases
+    cart-multiuser.spec.ts        — concurrent cart edits, realtime, out-today, dietary veto
+    poll-lifecycle.spec.ts        — close_poll: lock semantics, cancel, empty-cart, dispatched-status UI
+    accompaniment.spec.ts         — accompaniment suggestions sourcing + cart lines alongside mains
+    grocery-and-dispatch.spec.ts  — per-dish scaling, staples, checklist realtime, dispatch_cook edge cases
 ```

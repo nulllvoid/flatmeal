@@ -5,13 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 
-// S0 step 2 (create branch only). Dietary profile, cook details, and poll
-// timing prompts (per docs/03-mvp-spec.md S0) are deferred — this screen's
-// job for now is just "one authenticated user ends up in a flat with a
-// membership row," which is the minimum needed for the rest of the app.
+// S0 step 2 (create branch only): "one authenticated user ends up in a flat
+// with a membership row." Continues into onboarding/diet.tsx and
+// onboarding/cook.tsx for the dietary profile and cook prompts.
 // TODO: onboarding/join-flat.tsx (deep-link + invite_code lookup) is not
 // built yet — creating is the only path in right now.
 export default function CreateFlatScreen() {
@@ -54,8 +54,10 @@ export default function CreateFlatScreen() {
       return;
     }
 
-    router.replace('/(tabs)');
+    router.replace('/onboarding/diet');
   }
+
+  const theme = useTheme();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -67,19 +69,23 @@ export default function CreateFlatScreen() {
 
         <TextInput
           placeholder="Flat name"
+          placeholderTextColor={theme.textSecondary}
           value={name}
           onChangeText={setName}
-          style={styles.input}
+          style={[styles.input, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.backgroundElement }]}
         />
 
-        <Pressable style={styles.primaryButton} onPress={createFlat} disabled={loading || !name}>
-          <ThemedText type="smallBold" style={styles.primaryButtonText}>
+        <Pressable
+          style={[styles.primaryButton, { backgroundColor: theme.accent }, (loading || !name) && styles.disabled]}
+          onPress={createFlat}
+          disabled={loading || !name}>
+          <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
             {loading ? 'Creating…' : 'Create flat'}
           </ThemedText>
         </Pressable>
 
         {error && (
-          <ThemedText type="small" style={styles.errorText}>
+          <ThemedText type="small" style={{ color: theme.danger }}>
             {error}
           </ThemedText>
         )}
@@ -97,22 +103,22 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#00000030',
-    borderRadius: Spacing.two,
-    padding: Spacing.three,
+    borderWidth: 1.5,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
     fontSize: 16,
+    fontFamily: Fonts.body,
   },
   primaryButton: {
     paddingVertical: Spacing.three,
-    borderRadius: Spacing.two,
-    backgroundColor: '#3c87f7',
+    borderRadius: Radius.pill,
     alignItems: 'center',
   },
-  primaryButtonText: {
-    color: '#ffffff',
+  disabled: {
+    opacity: 0.45,
   },
-  errorText: {
-    color: '#e5484d',
+  primaryButtonText: {
+    fontFamily: Fonts.bodyBold,
   },
 });

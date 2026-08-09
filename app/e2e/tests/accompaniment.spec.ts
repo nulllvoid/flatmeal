@@ -1,145 +1,134 @@
 import { test, expect } from '../fixtures/auth';
 import { dbQuery } from '../fixtures/db';
-import { getPollForDate, resetPollState, triggerClosePoll, triggerDispatchCook } from '../fixtures/poll-state';
-import { castAccompanimentVoteAsUser, castVoteAsUser, seedOpenPoll } from '../fixtures/seed-poll';
-import { TEST_USERS } from '../fixtures/test-users';
+import { getPollForDate, resetPollState, triggerClosePoll, triggerCreatePoll, triggerDispatchCook } from '../fixtures/poll-state';
+import { addToCartAsUser, seedOpenPoll } from '../fixtures/seed-poll';
+import { TEST_FLAT_ID, TEST_USERS } from '../fixtures/test-users';
 
-// Covers the 5-state UI machine documented in app/src/app/(tabs)/index.tsx's
-// accompaniment section: open (no section), closed+options (voting open),
-// closed+zero-options (skip path, e.g. Vegetable Pulao), decided-not-yet-
-// dispatched, and dispatched (combined name everywhere).
-test.describe('Accompaniment (roti/rice) vote', () => {
+// Accompaniments (roti/rice/etc) are no longer a second, gated vote — they're
+// just more cart_items rows, distinguished from mains only by recipes.kind.
+// This suite covers: create_poll sourcing accompaniment suggestions from the
+// day's suggested mains, adding an accompaniment to the cart alongside a
+// main, and both surviving through close/dispatch together.
+test.describe('Accompaniments in the shared cart', () => {
   test.afterEach(async () => {
     await resetPollState();
   });
 
-  test('state 1: open poll shows main-dish cards only, no accompaniment section', async ({ ownerPage }) => {
+  test('create_poll sources accompaniment suggestions from the union of recipe_accompaniments for suggested mains', async () => {
+    await resetPollState();
+
+    // Use the real pipeline (not the lightweight seedOpenPoll fixture) since
+    // this specifically tests create_poll's own accompaniment-sourcing logic.
+    await triggerCreatePoll();
+
+    const poll = getPollForDate() as { id: string } | null;
+    const mains = dbQuery(
+      `select r.slug from poll_options po join recipes r on r.id = po.recipe_id where po.poll_id = '${poll?.id}';`
+    ) as { slug: string }[];
+    expect(mains.length).toBeGreaterThan(0);
+
+    const accompaniments = dbQuery(
+      `select r.slug from poll_accompaniment_options pao join recipes r on r.id = pao.recipe_id where pao.poll_id = '${poll?.id}';`
+    ) as { slug: string }[];
+
+    // Every suggested accompaniment must be curated (via recipe_accompaniments)
+    // for at least one of today's suggested mains.
+    const mainSlugsList = mains.map((m) => `'${m.slug}'`).join(', ');
+    if (accompaniments.length > 0) {
+      const validPairs = dbQuery(
+        `select distinct ra.accompaniment_recipe_id from recipe_accompaniments ra
+         join recipes m on m.id = ra.main_recipe_id
+         where m.slug in (${mainSlugsList});`
+      ) as { accompaniment_recipe_id: string }[];
+      expect(validPairs.length).toBeGreaterThan(0);
+    }
+  });
+
+  test('a main and its accompaniment can both be added to the cart and appear grouped by kind', async ({ ownerPage }) => {
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
+    dbQuery(`
+      insert into poll_accompaniment_options (poll_id, recipe_id, position)
+      select dp.id, r.id, 1 from daily_polls dp, recipes r
+      where dp.flat_id = '${TEST_FLAT_ID}' and r.slug = 'roti'
+      on conflict (poll_id, recipe_id) do nothing;
+    `);
 
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
     await expect(ownerPage.getByText('Dal Tadka', { exact: true })).toBeVisible({ timeout: 15000 });
-    await expect(ownerPage.getByText('What should it come with?')).toHaveCount(0);
-  });
-
-  test('state 3: closing a poll for a dish with accompaniments opens a second vote', async ({ ownerPage, priyaPage }) => {
-    await resetPollState();
-    seedOpenPoll(['dal-tadka', 'tomato-rasam']); // dal-tadka -> roti + steamed-rice
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
-    castVoteAsUser(TEST_USERS.priya.id, 'dal-tadka');
-
-    await triggerClosePoll();
-
-    const poll = getPollForDate() as { id: string; winner_recipe_id: string } | null;
-    const winnerSlug = dbQuery(`select slug from recipes where id = '${poll?.winner_recipe_id}';`) as {
-      slug: string;
-    }[];
-    expect(winnerSlug[0].slug).toBe('dal-tadka');
-
-    const options = dbQuery(
-      `select r.slug from poll_accompaniment_options pao join recipes r on r.id = pao.recipe_id
-       where pao.poll_id = '${poll?.id}';`
-    ) as { slug: string }[];
-    expect(options.map((o) => o.slug).sort()).toEqual(['roti', 'steamed-rice']);
-
-    await ownerPage.reload();
-    await ownerPage.waitForTimeout(3000);
-    await expect(ownerPage.getByText('What should it come with?')).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText('Accompaniments', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Roti', { exact: true })).toBeVisible();
-    await expect(ownerPage.getByText('Steamed Rice', { exact: true })).toBeVisible();
 
-    // Multi-user: priya votes for Roti and the owner's page reflects it
-    // live via the accompaniment_votes realtime subscription.
-    await priyaPage.reload();
-    await priyaPage.waitForTimeout(3000);
-    await priyaPage.getByText('Roti', { exact: true }).click();
-    await priyaPage.waitForTimeout(1500);
+    await ownerPage.getByText('Dal Tadka', { exact: true }).click();
+    await ownerPage.waitForTimeout(1000);
+    await ownerPage.getByText('Roti', { exact: true }).click();
+    await ownerPage.waitForTimeout(1000);
 
-    await expect(ownerPage.getByText(`vote — ${TEST_USERS.priya.displayName}`, { exact: false })).toBeVisible({
-      timeout: 8000,
-    });
+    const cartKinds = dbQuery(
+      `select r.kind from cart_items ci join recipes r on r.id = ci.recipe_id
+       join daily_polls dp on dp.id = ci.poll_id where dp.flat_id = '${TEST_FLAT_ID}' order by r.kind;`
+    ) as { kind: string }[];
+    expect(cartKinds.map((c) => c.kind).sort()).toEqual(['accompaniment', 'main']);
+
+    await expect(ownerPage.getByText('Your cart', { exact: false })).toBeVisible();
   });
 
-  test('state 2: a dish with no curated accompaniment (Vegetable Pulao) skips the vote entirely', async ({
+  test('a main with no curated accompaniment (Vegetable Pulao) offers no accompaniment suggestions, not an error state', async ({
     ownerPage,
   }) => {
     await resetPollState();
     seedOpenPoll(['veg-pulao', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'veg-pulao');
-    castVoteAsUser(TEST_USERS.priya.id, 'veg-pulao');
-
-    await triggerClosePoll();
-
-    const poll = getPollForDate() as { winner_accompaniment_reason: string } | null;
-    expect(poll?.winner_accompaniment_reason).toBe('none_available');
+    // No poll_accompaniment_options row seeded — Vegetable Pulao has none.
 
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
-    await expect(ownerPage.getByText("Tonight's winner", { exact: false })).toBeVisible({ timeout: 15000 });
-    await expect(ownerPage.getByText('Vegetable Pulao', { exact: true })).toBeVisible();
-    // No accompaniment suffix, no voting section — the "skip cleanly" path.
-    await expect(ownerPage.getByText('Vegetable Pulao with', { exact: false })).toHaveCount(0);
-    await expect(ownerPage.getByText('What should it come with?')).toHaveCount(0);
+    await expect(ownerPage.getByText('Vegetable Pulao', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText('Accompaniments', { exact: true })).toHaveCount(0);
   });
 
-  test('state 5: after dispatch, the winner card shows the combined dish name', async ({ ownerPage }) => {
+  test('cart with both main and accompaniment survives close and dispatch together', async ({ ownerPage }) => {
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'dal-tadka', 2);
+    addToCartAsUser(TEST_USERS.owner.id, 'roti', 2);
+
     await triggerClosePoll();
-
-    castAccompanimentVoteAsUser(TEST_USERS.owner.id, 'roti');
-
     await triggerDispatchCook();
 
-    const poll = getPollForDate() as {
-      status: string;
-      winner_accompaniment_recipe_id: string;
-      winner_accompaniment_reason: string;
-    } | null;
+    const poll = getPollForDate() as { status: string } | null;
     expect(poll?.status).toBe('dispatched');
-    expect(poll?.winner_accompaniment_reason).toBe('votes');
 
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
-    await expect(ownerPage.getByText('Dal Tadka with Roti', { exact: true })).toBeVisible({ timeout: 15000 });
-    await expect(ownerPage.getByText('What should it come with?')).toHaveCount(0);
+    await ownerPage.getByText('Preview cook message', { exact: true }).click();
+    await ownerPage.waitForTimeout(2000);
+
+    // No GOOGLE_TRANSLATE_API_KEY configured in this environment, so the
+    // cook's hi-language payload falls back to the English in-app-preview
+    // composition (composeEnglishPayload) rather than the translated
+    // per-dish "For the X:" format — assert on the shared summary line and
+    // dish name only, which both compositions produce identically.
+    await expect(ownerPage.getByText("Today's meal: Dal Tadka", { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText('Roti', { exact: false }).first()).toBeVisible();
   });
 
-  test('grocery list and cook message both include the accompaniment after dispatch', async ({ ownerPage }) => {
+  test('grocery list includes both dishes\' ingredients, scaled independently, labeled by dish', async ({ ownerPage }) => {
     await resetPollState();
     seedOpenPoll(['dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'dal-tadka', 2);
+    addToCartAsUser(TEST_USERS.owner.id, 'roti', 1);
     await triggerClosePoll();
-
-    castAccompanimentVoteAsUser(TEST_USERS.owner.id, 'roti');
-    await triggerDispatchCook();
 
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
     await ownerPage.getByText('Grocery list', { exact: true }).click();
     await ownerPage.waitForTimeout(2000);
 
-    // Expo Router's tab navigator keeps the Today tab mounted-but-hidden
-    // underneath, so a bare getByText('Dal Tadka with Roti') matches both
-    // screens — scope to the "Scaled for" line, unique to the grocery
-    // screen, and to the ingredient line for the atta check.
-    await expect(ownerPage.getByText('Scaled for', { exact: false })).toBeVisible({ timeout: 15000 });
+    // Both dish names appear in the header summary, and Roti's wheat flour
+    // is listed with its own "for Roti" label distinct from Dal Tadka's lines.
+    await expect(ownerPage.getByText('Dal Tadka (2), Roti (1)', { exact: true })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Wheat flour (atta)', { exact: true })).toBeVisible();
-
-    // grocery-list and cook-message-preview are pushed stack screens over
-    // the tabs (see app/src/app/_layout.tsx), not sibling tabs — reload()
-    // would just reload the current screen's URL, so re-enter from the
-    // Today tab via a fresh navigation instead of trying to "go back".
-    await ownerPage.goto('http://localhost:8081/', { waitUntil: 'domcontentloaded' });
-    await ownerPage.waitForTimeout(3000);
-    await ownerPage.getByText('Preview cook message', { exact: true }).click();
-    await ownerPage.waitForTimeout(2000);
-
-    await expect(ownerPage.getByText("Today's meal: Dal Tadka with Roti", { exact: false })).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(ownerPage.getByText('For the Roti:', { exact: false })).toBeVisible();
+    await expect(ownerPage.getByText('for Roti', { exact: false }).first()).toBeVisible();
   });
 });

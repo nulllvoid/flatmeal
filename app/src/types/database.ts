@@ -14,43 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
-      accompaniment_votes: {
+      activity_log: {
         Row: {
-          poll_id: string
-          recipe_id: string
-          user_id: string
-          voted_at: string
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          event_type: string
+          flat_id: string
+          id: string
+          poll_id: string | null
+          recipe_id: string | null
         }
         Insert: {
-          poll_id: string
-          recipe_id: string
-          user_id: string
-          voted_at?: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          event_type: string
+          flat_id: string
+          id?: string
+          poll_id?: string | null
+          recipe_id?: string | null
         }
         Update: {
-          poll_id?: string
-          recipe_id?: string
-          user_id?: string
-          voted_at?: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          event_type?: string
+          flat_id?: string
+          id?: string
+          poll_id?: string | null
+          recipe_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "accompaniment_votes_poll_id_fkey"
+            foreignKeyName: "activity_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_flat_id_fkey"
+            columns: ["flat_id"]
+            isOneToOne: false
+            referencedRelation: "flats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_poll_id_fkey"
             columns: ["poll_id"]
             isOneToOne: false
             referencedRelation: "daily_polls"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "accompaniment_votes_recipe_id_fkey"
+            foreignKeyName: "activity_log_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cart_items: {
+        Row: {
+          added_by: string | null
+          poll_id: string
+          quantity: number
+          recipe_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          poll_id: string
+          quantity: number
+          recipe_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          poll_id?: string
+          quantity?: number
+          recipe_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "daily_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
             referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "accompaniment_votes_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "cart_items_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -106,10 +181,6 @@ export type Database = {
           id: string
           poll_date: string
           status: string
-          winner_accompaniment_reason: string | null
-          winner_accompaniment_recipe_id: string | null
-          winner_reason: string | null
-          winner_recipe_id: string | null
         }
         Insert: {
           created_at?: string
@@ -118,10 +189,6 @@ export type Database = {
           id?: string
           poll_date: string
           status?: string
-          winner_accompaniment_reason?: string | null
-          winner_accompaniment_recipe_id?: string | null
-          winner_reason?: string | null
-          winner_recipe_id?: string | null
         }
         Update: {
           created_at?: string
@@ -130,10 +197,6 @@ export type Database = {
           id?: string
           poll_date?: string
           status?: string
-          winner_accompaniment_reason?: string | null
-          winner_accompaniment_recipe_id?: string | null
-          winner_reason?: string | null
-          winner_recipe_id?: string | null
         }
         Relationships: [
           {
@@ -141,20 +204,6 @@ export type Database = {
             columns: ["flat_id"]
             isOneToOne: false
             referencedRelation: "flats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_polls_winner_accompaniment_recipe_id_fkey"
-            columns: ["winner_accompaniment_recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_polls_winner_recipe_id_fkey"
-            columns: ["winner_recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
         ]
@@ -333,6 +382,8 @@ export type Database = {
           dispatch_time: string
           id: string
           invite_code: string
+          max_accompaniments: number | null
+          max_mains: number | null
           name: string
           poll_close_time: string
           poll_open_time: string
@@ -344,6 +395,8 @@ export type Database = {
           dispatch_time?: string
           id?: string
           invite_code?: string
+          max_accompaniments?: number | null
+          max_mains?: number | null
           name: string
           poll_close_time?: string
           poll_open_time?: string
@@ -355,6 +408,8 @@ export type Database = {
           dispatch_time?: string
           id?: string
           invite_code?: string
+          max_accompaniments?: number | null
+          max_mains?: number | null
           name?: string
           poll_close_time?: string
           poll_open_time?: string
@@ -735,55 +790,16 @@ export type Database = {
         }
         Relationships: []
       }
-      votes: {
-        Row: {
-          poll_id: string
-          recipe_id: string
-          user_id: string
-          voted_at: string
-        }
-        Insert: {
-          poll_id: string
-          recipe_id: string
-          user_id: string
-          voted_at?: string
-        }
-        Update: {
-          poll_id?: string
-          recipe_id?: string
-          user_id?: string
-          voted_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "votes_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "daily_polls"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "votes_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "votes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       is_flat_member: { Args: { target_flat_id: string }; Returns: boolean }
+      take_fallback_cart_item: {
+        Args: { p_poll_id: string; p_quantity: number; p_recipe_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

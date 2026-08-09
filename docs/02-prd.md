@@ -22,25 +22,25 @@ Flatmates who share a domestic cook spend daily effort deciding the menu, figuri
 - Per-member dietary profile: veg / eggetarian / non-veg; Jain toggle; allergy tags (free-pick from a fixed list: peanut, dairy, gluten, shellfish, soy).
 - Flat settings: cook name, cook phone (E.164), cook language (Hindi / Kannada / English v1), meal to plan (dinner only in v1), poll timings (defaults 09:00 / 11:00 / 16:00 IST).
 
-### F2. Daily vote
-- System creates a daily poll with **3 dish options** drawn from the curated recipe pool:
+### F2. Daily cart
+- System creates a daily suggestion list — up to **3 main-course suggestions** drawn from the curated recipe pool, plus up to **3 accompaniment suggestions** sourced from the curated pairings for those mains:
   - hard-filtered by the union of the flat's dietary constraints and allergies (allergy = unoverrideable veto),
   - no dish repeated within the last 10 days for that flat,
-  - options span variety (not 3 dishes of the same cuisine/base) — simple heuristic, not ML.
+  - main suggestions span variety (not 3 dishes of the same cuisine/base) — simple heuristic, not ML.
 - Push notification at poll-open time.
-- Tap-to-vote; one vote per member; changeable until close; live vote counts visible (social proof).
-- "I'm out today" toggle per member per day → excluded from headcount.
-- At close: winner = most votes; tie-break = least-recently-eaten; zero votes = least-recently-eaten of the three. Winner is announced in-app + push.
+- Tap a suggestion to add it to the flat's shared cart, at a default quantity equal to current headcount. Any flatmate can add any number of dishes (mains and/or accompaniments) and adjust each dish's quantity independently with a stepper, capped at headcount; live cart updates visible to everyone (social proof, no separate "votes").
+- "I'm out today" toggle per member per day → excluded from headcount (and from the quantity cap on cart edits made afterward).
+- At close: no winner is computed — the cart simply locks (read-only) as "tonight's menu." An empty cart at close time is not an error; dispatch skips sending and logs it instead of sending nothing.
 
 ### F3. Grocery list (core, per user insight: flatmates don't know ingredients)
-- Winning dish's ingredients scaled by final headcount, displayed as a checklist grouped by category (vegetables / dairy / staples / other).
+- Every dish in the locked cart contributes its own ingredients, each scaled by that dish's own cart quantity (not a single flat-wide headcount), displayed as a checklist grouped by category (vegetables / dairy / staples / other), with each row labeled by which dish it's for.
 - Members tick items already in the kitchen; the remainder is "to buy."
 - Staples/spices collapse into one "check you have: turmeric, jeera…" line (flagged `is_staple`), excluded from the buy list by default.
 - One-tap: copy list / share to WhatsApp as plain text.
 - Optional (stretch): per-item tap opens Blinkit/Zepto search page via URL scheme. No cart APIs, no pricing.
 
 ### F4. Cook dispatch
-- At dispatch time (default 16:00), send the cook a WhatsApp utility-template message via BSP containing: greeting with cook name, dish name, headcount ("cook for N people"), scaled key ingredients, cooking instructions, and any flat note for the day (free-text field any member can set before dispatch, e.g., "less spicy today").
+- At dispatch time (default 16:00), send the cook a WhatsApp utility-template message via BSP containing: greeting with cook name, all of tonight's dish names, total headcount, each dish's own scaled ingredients and cooking instructions, and any flat note for the day (free-text field any member can set before dispatch, e.g., "less spicy today").
 - Text is translated to the cook's language (Google Cloud Translate) at dispatch time.
 - Delivery status (sent/delivered/failed) shown in-app; on failure, fall back to showing the composed message with a "share to cook on WhatsApp yourself" button (wa.me link with prefilled text).
 - Stretch (week 4 only): attach a TTS voice note of the same instructions.
@@ -75,4 +75,4 @@ Digital pantry / inventory tracking · Q-comm cart assembly, pricing, or scrapin
 | Meta template approval delays | Submit week 1; build with mock dispatcher; wa.me manual-share fallback ships regardless |
 | Machine translation reads awkward to cooks | Human-review Hindi/Kannada renderings of the 80-recipe instruction texts once; cache reviewed translations per recipe |
 | Recipe data errors (wrong quantities) | Founder + one cook review pass over the dataset before pilot |
-| Flats stop voting after novelty fades | Auto-fallback winner keeps cook flow alive even at zero votes; measure, don't assume |
+| Flats stop engaging with the cart after novelty fades | Cook dispatch degrades gracefully (empty cart → skipped + logged, not a crash); measure participation, don't assume |

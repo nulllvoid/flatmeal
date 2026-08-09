@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useCookDispatch } from '@/hooks/use-cook-dispatch';
 import { useMyFlat } from '@/hooks/use-my-flat';
 import { useSession } from '@/hooks/use-session';
@@ -87,15 +87,16 @@ const styles = StyleSheet.create({
   },
   messageBox: {
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.md,
   },
   whatsAppButton: {
     paddingVertical: Spacing.three,
-    borderRadius: Spacing.two,
+    borderRadius: Radius.pill,
     backgroundColor: '#25D366',
     alignItems: 'center',
   },
   whatsAppButtonText: {
+    fontFamily: Fonts.bodyBold,
     color: '#ffffff',
   },
 });

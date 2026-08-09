@@ -1,12 +1,13 @@
 import type { IngredientUnit } from '@/types/domain';
 
 // Renders a scaled quantity as a buyable label (CLAUDE.md: "Ingredient
-// quantities are stored per-person; UI multiplies by headcount. Units must
-// be purchasable"). Piece-like units round up to whole units since you
-// can't buy half an onion; weight/volume/spoon units round to a sensible
-// precision for shopping.
-export function scaleIngredient(qtyPerPerson: number, unit: IngredientUnit, headcount: number): string {
-  const raw = qtyPerPerson * headcount;
+// quantities are stored per-person; UI multiplies by each cart line's
+// quantity"). Piece-like units round up to whole units since you can't buy
+// half an onion; weight/volume/spoon units round to a sensible precision
+// for shopping. `quantity` is the cart line's own quantity (defaults to,
+// and is capped by, headcount) — not a shared flat-wide headcount anymore.
+export function scaleIngredient(qtyPerPerson: number, unit: IngredientUnit, quantity: number): string {
+  const raw = qtyPerPerson * quantity;
 
   switch (unit) {
     case 'piece':

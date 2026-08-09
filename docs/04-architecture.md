@@ -5,7 +5,7 @@
 | Layer | Choice | Why |
 |---|---|---|
 | Mobile app | Expo (React Native) + TypeScript, Expo Router | One codebase → eventual Play Store/App Store; EAS Build APK links for storeless pilot distribution; EAS Update for OTA fixes mid-pilot; expo-notifications for push |
-| Backend | Supabase | Postgres + Auth (phone OTP) + Realtime (live votes/checklist) + Edge Functions + pg_cron; no servers to run |
+| Backend | Supabase | Postgres + Auth (phone OTP) + Realtime (live cart/checklist) + Edge Functions + pg_cron; no servers to run |
 | Scheduling | pg_cron → Edge Functions (`create_poll`, `close_poll`, `dispatch_cook`) | Per-flat times: cron runs every 15 min, function selects flats whose local time matches |
 | WhatsApp | BSP: AiSensy or Interakt (decide week 1 by pricing/onboarding speed) over Meta WhatsApp Business Cloud API | Utility templates; webhook → Edge Function for delivery status |
 | Translation | Google Cloud Translate; per-recipe reviewed-translation cache in DB | Hindi + Kannada v1; Sarvam AI later for colloquial quality / TTS |
@@ -28,7 +28,7 @@
 - **Dispatch is mockable:** `DISPATCH_MODE=mock|live` env on the Edge Function. Mock writes the fully composed + translated payload to `dispatch_log` with status `mocked`. The entire app must be demoable before Meta approval lands.
 - **Translation caching:** recipe instruction translations are deterministic per (recipe, language) → cache in `recipe_translations`, human-reviewable (`reviewed_by`, `reviewed_at`). Dynamic parts (headcount, flat note) translated at dispatch; flat note goes through Translate live.
 - **Timezone:** store timestamps in UTC; all flat-facing schedule columns are `time` + `Asia/Kolkata` assumed for v1 (column `tz` exists for later).
-- **Option-generation determinism:** selection seeded by (flat_id, date) so re-runs are idempotent; poll creation upserts on (flat_id, date).
+- **Suggestion-generation determinism:** selection seeded by (flat_id, date) so re-runs are idempotent; poll creation upserts on (flat_id, date). Accompaniment suggestions are also generated at create_poll time now (sourced from the day's suggested mains), not deferred to close_poll — there's no "winner" gate to wait on anymore.
 - **No secrets in the app:** BSP keys, Translate keys live in Edge Function env only.
 
 ## External accounts to create (week 1, longest lead first)
@@ -43,11 +43,11 @@
 
 ```
 pg_cron (16:00 slot) → dispatch_cook(flat)
-  → load poll winner, recompute headcount from out-toggles
-  → scale ingredients (qty_per_person × headcount, round to buyable units)
-  → compose English payload
-  → translation: cached recipe body + live-translate flat note
-  → fill template vars → BSP send API
+  → load cart_items (every dish the flat added), recompute headcount from out-toggles (informational only)
+  → scale each dish's ingredients by ITS OWN cart quantity (qty_per_person × cart quantity, round to buyable units)
+  → compose per-dish English payload sections + flat note
+  → translation: cached recipe body per dish + live-translate flat note
+  → fill template vars (dish names / total headcount / per-dish ingredients / per-dish method / note) → BSP send API
   → insert dispatch_log(status='sent', payload, message_id)
 BSP webhook → wa_webhook fn → update dispatch_log status (delivered/read/failed)
 failed → push to members + enable wa.me self-send fallback in app

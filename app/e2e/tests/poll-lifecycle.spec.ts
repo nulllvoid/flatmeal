@@ -1,88 +1,73 @@
 import { test, expect } from '../fixtures/auth';
 import { dbQuery } from '../fixtures/db';
 import { getPollForDate, resetPollState, triggerClosePoll, triggerDispatchCook } from '../fixtures/poll-state';
-import { castVoteAsUser, seedOpenPoll } from '../fixtures/seed-poll';
+import { addToCartAsUser, seedOpenPoll } from '../fixtures/seed-poll';
 import { TEST_FLAT_ID, TEST_USERS } from '../fixtures/test-users';
 
-test.describe('Poll lifecycle: close and winner selection', () => {
+test.describe('Poll lifecycle: locking the cart', () => {
   test.afterEach(async () => {
     await resetPollState();
   });
 
-  test('closing a poll with votes picks the majority winner and shows the winner card', async ({ ownerPage }) => {
+  test('closing a poll locks the cart and shows the read-only menu with action buttons', async ({ ownerPage }) => {
     await resetPollState();
     seedOpenPoll(['palak-paneer', 'dal-tadka', 'tomato-rasam']);
-    castVoteAsUser(TEST_USERS.owner.id, 'palak-paneer');
-    castVoteAsUser(TEST_USERS.priya.id, 'palak-paneer');
-    castVoteAsUser(TEST_USERS.rahul.id, 'dal-tadka');
+    addToCartAsUser(TEST_USERS.owner.id, 'palak-paneer', 2);
+    addToCartAsUser(TEST_USERS.priya.id, 'dal-tadka', 1);
 
     await triggerClosePoll();
 
-    const poll = getPollForDate() as { status: string; winner_recipe_id: string } | null;
+    const poll = getPollForDate() as { status: string } | null;
     expect(poll?.status).toBe('closed');
 
-    const winnerSlug = dbQuery(`select slug from recipes where id = '${poll?.winner_recipe_id}';`) as {
-      slug: string;
-    }[];
-    expect(winnerSlug[0].slug).toBe('palak-paneer'); // 2 votes vs 1
-
-    // Reload rather than just switching tabs: use-today-poll.ts only
-    // re-fetches on mount (or via its votes/daily_polls realtime channel,
-    // which doesn't exist yet if the page mounted before the poll did — see
-    // e2e/README.md "Known gap: stale poll state without reload").
+    // Reload rather than just switching tabs: use-today-cart.ts only
+    // re-fetches on mount (or via its cart_items/daily_polls realtime
+    // channel, which doesn't exist yet if the page mounted before the poll
+    // did — see e2e/README.md "Known gap: stale poll state without reload").
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
-    await expect(ownerPage.getByText("Tonight's winner", { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText("Tonight's menu", { exact: false })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Palak Paneer', { exact: true })).toBeVisible();
-    await expect(ownerPage.getByText('2 votes')).toBeVisible();
+    await expect(ownerPage.getByText('Dal Tadka', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Grocery list', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Preview cook message', { exact: true })).toBeVisible();
+
+    // Locked: no stepper controls, no Remove action.
+    await expect(ownerPage.getByText('Remove', { exact: true })).toHaveCount(0);
   });
 
-  test('a tie falls back to least-recently-eaten and is labeled "tie-break"', async ({ ownerPage }) => {
+  test('locked cart shows quantities as plain text, not editable steppers', async ({ ownerPage }) => {
+    // The actual write-lock is enforced by RLS (cart_items: members write
+    // while open, supabase/migrations/20260109000000_cart_items.sql) — not
+    // independently exercisable via dbQuery, which runs as service role and
+    // bypasses RLS entirely. This test instead verifies the user-facing
+    // guarantee: once locked, the UI offers no way to trigger an edit.
     await resetPollState();
     seedOpenPoll(['palak-paneer', 'dal-tadka']);
-    castVoteAsUser(TEST_USERS.owner.id, 'palak-paneer');
-    castVoteAsUser(TEST_USERS.priya.id, 'dal-tadka');
-    // rahul doesn't vote -> 1-1 tie between the two options.
+    addToCartAsUser(TEST_USERS.owner.id, 'palak-paneer', 2);
 
     await triggerClosePoll();
 
-    const poll = getPollForDate() as { winner_reason: string } | null;
-    // Could resolve to 'tiebreak_lru' (both are candidates) — assert the
-    // reason column is one of the two tie-adjacent values and the reason
-    // renders correctly, rather than hardcoding which dish wins the
-    // tiebreak (depends on this flat's dispatch history, which earlier
-    // specs also touch).
-    expect(['tiebreak_lru', 'votes']).toContain(poll?.winner_reason);
-
-    if (poll?.winner_reason === 'tiebreak_lru') {
-      await ownerPage.reload();
-      await ownerPage.waitForTimeout(3000);
-      await expect(ownerPage.getByText('(tie-break)', { exact: false })).toBeVisible({ timeout: 15000 });
-    }
-  });
-
-  test('zero votes falls back to auto-pick and is labeled "auto-picked"', async ({ ownerPage }) => {
-    await resetPollState();
-    seedOpenPoll(['palak-paneer', 'dal-tadka', 'tomato-rasam']);
-    // No votes cast by anyone.
-
-    await triggerClosePoll();
-
-    const poll = getPollForDate() as { winner_reason: string; winner_recipe_id: string } | null;
-    expect(poll?.winner_reason).toBe('auto_no_votes');
-    expect(poll?.winner_recipe_id).not.toBeNull();
+    const poll = getPollForDate() as { status: string } | null;
+    expect(poll?.status).toBe('closed');
 
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
-    await expect(ownerPage.getByText('(auto-picked — no votes)', { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText('Palak Paneer', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(ownerPage.getByText('Remove', { exact: true })).toHaveCount(0);
+    await expect(ownerPage.getByText('+', { exact: true })).toHaveCount(0);
+
+    const quantity = dbQuery(
+      `select ci.quantity from cart_items ci join daily_polls dp on dp.id = ci.poll_id
+       where dp.flat_id = '${TEST_FLAT_ID}';`
+    ) as { quantity: number }[];
+    expect(quantity[0].quantity).toBe(2); // unchanged
   });
 
-  test('winner card and action buttons remain visible after dispatch, not just while closed', async ({ ownerPage }) => {
+  test('menu and action buttons remain visible after dispatch, not just while closed', async ({ ownerPage }) => {
     await resetPollState();
     seedOpenPoll(['palak-paneer', 'dal-tadka']);
-    castVoteAsUser(TEST_USERS.owner.id, 'palak-paneer');
+    addToCartAsUser(TEST_USERS.owner.id, 'palak-paneer', 3);
     await triggerClosePoll();
 
     await triggerDispatchCook();
@@ -92,11 +77,10 @@ test.describe('Poll lifecycle: close and winner selection', () => {
 
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
-    // Regression guard for the bug fixed earlier this session: the winner
-    // card used to disappear once status flipped from 'closed' to
-    // 'dispatched', hiding the Grocery list / Preview cook message links
-    // exactly when they matter most.
-    await expect(ownerPage.getByText("Tonight's winner", { exact: false })).toBeVisible({ timeout: 15000 });
+    // Regression guard: the menu used to disappear once status flipped from
+    // 'closed' to 'dispatched', hiding the Grocery list / Preview cook
+    // message links exactly when they matter most.
+    await expect(ownerPage.getByText("Tonight's menu", { exact: false })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Grocery list', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Preview cook message', { exact: true })).toBeVisible();
   });
@@ -121,5 +105,21 @@ test.describe('Poll lifecycle: close and winner selection', () => {
     dbQuery(
       `update day_attendance set is_out = false where flat_id = '${TEST_FLAT_ID}' and poll_date = (select poll_date from daily_polls where flat_id = '${TEST_FLAT_ID}' order by poll_date desc limit 1);`
     );
+  });
+
+  test('an empty cart at dispatch time logs a pipeline error and does not mark the poll dispatched', async () => {
+    await resetPollState();
+    seedOpenPoll(['palak-paneer', 'dal-tadka']);
+    // Nobody adds anything to the cart.
+    await triggerClosePoll();
+    await triggerDispatchCook();
+
+    const poll = getPollForDate() as { status: string } | null;
+    expect(poll?.status).toBe('closed'); // not 'dispatched'
+
+    const errors = dbQuery(
+      `select detail from pipeline_errors where stage = 'dispatch_cook' and flat_id = '${TEST_FLAT_ID}' order by created_at desc limit 1;`
+    ) as { detail: { message: string } }[];
+    expect(errors[0]?.detail?.message).toBe('empty cart at dispatch time');
   });
 });

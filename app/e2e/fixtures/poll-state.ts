@@ -59,9 +59,8 @@ export async function resetPollState(flatId: string = TEST_FLAT_ID, date: string
   dbQuery(`
     delete from dispatch_log where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
     delete from grocery_checks where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
-    delete from accompaniment_votes where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
+    delete from cart_items where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
     delete from poll_accompaniment_options where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
-    delete from votes where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
     delete from poll_options where poll_id in (select id from daily_polls where flat_id = '${flatId}' and poll_date = '${date}');
     delete from day_attendance where flat_id = '${flatId}' and poll_date = '${date}';
     delete from daily_polls where flat_id = '${flatId}' and poll_date = '${date}';
@@ -71,8 +70,7 @@ export async function resetPollState(flatId: string = TEST_FLAT_ID, date: string
 
 export function getPollForDate(flatId: string = TEST_FLAT_ID, date: string = todayIst()) {
   const rows = dbQuery(
-    `select id, status, winner_recipe_id, winner_reason, winner_accompaniment_recipe_id, winner_accompaniment_reason
-     from daily_polls where flat_id = '${flatId}' and poll_date = '${date}';`
+    `select id, status from daily_polls where flat_id = '${flatId}' and poll_date = '${date}';`
   ) as Record<string, unknown>[];
   return rows[0] ?? null;
 }

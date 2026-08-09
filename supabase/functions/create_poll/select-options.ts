@@ -3,7 +3,7 @@
 //   1. Hard filter: union of flat members' diet_type/is_jain/allergies acts
 //      as an unoverrideable veto against recipes.diet_class/jain_ok/allergens.
 //   2. Exclude any recipe served to this flat in the last 10 days, derived
-//      from daily_polls.winner_recipe_id where status='dispatched'
+//      from cart_items joined to daily_polls where status='dispatched'
 //      (docs/04-architecture.md "meal history ... no separate table needed").
 //   3. Variety heuristic: not all 3 options share the same cuisine, and not
 //      all 3 share the same base.
@@ -114,12 +114,12 @@ export function selectPollOptions(params: {
   return shuffled.slice(0, 3).map((r) => r.id);
 }
 
-// Accompaniment (roti/rice/etc) option selection — called by close_poll once
-// the main dish winner is known (see docs/05-schema.sql's
-// daily_polls.winner_accompaniment_* comment for why this can't happen at
-// create_poll time). No 10-day exclusion or cuisine/base variety heuristic
-// here — those are main-dish-only concerns; this just seeded-shuffles the
-// curated, dietary-filtered candidate set for reproducibility.
+// Accompaniment (roti/rice/etc) option selection — called by create_poll
+// once the day's main-course suggestions are known (no "winner" gate exists
+// anymore; every recipe in poll_options is a candidate source). No 10-day
+// exclusion or cuisine/base variety heuristic here — those are
+// main-dish-only concerns; this just seeded-shuffles the curated,
+// dietary-filtered candidate set for reproducibility.
 export function selectAccompanimentOptions(params: {
   flatId: string;
   pollDate: string;
@@ -134,4 +134,62 @@ export function selectAccompanimentOptions(params: {
   const sorted = [...validAccompaniments].sort((a, b) => a.sortOrder - b.sortOrder);
   const shuffled = shuffle(sorted, rng);
   return shuffled.slice(0, 3).map((a) => a.recipeId);
+}
+
+// Sources accompaniment candidates for the day: the union of
+// recipe_accompaniments for every recipe in the day's main-course
+// suggestion list (poll_options), deduplicated, filtered to is_active +
+// dietary-eligible. Every main in the cart came from poll_options (dishes
+// only enter the cart via tapping a suggestion), so this guarantees any
+// cart main's accompaniments are always present in the suggestion list too.
+export async function selectAccompanimentOptionsForSuggestedMains(
+  admin: { from: (table: string) => any },
+  params: {
+    flatId: string;
+    pollDate: string;
+    suggestedMainRecipeIds: string[];
+    members: MemberDiet[];
+  }
+): Promise<string[]> {
+  const { suggestedMainRecipeIds, members, flatId, pollDate } = params;
+  if (suggestedMainRecipeIds.length === 0) return [];
+
+  const { data: mappingRows, error } = await admin
+    .from('recipe_accompaniments')
+    .select(
+      'accompaniment_recipe_id, sort_order, recipes:accompaniment_recipe_id(is_active, diet_class, jain_ok, allergens)'
+    )
+    .in('main_recipe_id', suggestedMainRecipeIds);
+  if (error) throw error;
+
+  const bestSortOrder = new Map<string, number>();
+  for (const row of mappingRows ?? []) {
+    if (!row.recipes?.is_active) continue;
+    if (
+      !isRecipeEligible(
+        {
+          id: row.accompaniment_recipe_id,
+          cuisine: '',
+          base: '',
+          diet_class: row.recipes.diet_class,
+          jain_ok: row.recipes.jain_ok,
+          allergens: row.recipes.allergens,
+        },
+        members
+      )
+    ) {
+      continue;
+    }
+    const existing = bestSortOrder.get(row.accompaniment_recipe_id);
+    if (existing === undefined || row.sort_order < existing) {
+      bestSortOrder.set(row.accompaniment_recipe_id, row.sort_order);
+    }
+  }
+
+  const validAccompaniments = [...bestSortOrder.entries()].map(([recipeId, sortOrder]) => ({
+    recipeId,
+    sortOrder,
+  }));
+
+  return selectAccompanimentOptions({ flatId, pollDate, validAccompaniments });
 }

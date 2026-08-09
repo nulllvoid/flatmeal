@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics=""><meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+<style>
+html{background:#E5E8ED}body{margin:0;background:#E5E8ED;font-family:Archivo,system-ui,sans-serif}
+a{color:#8F2F08}a:hover{color:#C2410C}
+.dv-turn{padding:44px 48px 40px;scroll-margin-top:16px;--bg:#F3F0EC;--ink:#1A1411;--acc:#C2410C;--deep:#8F2F08;--tint:#FBE3D2;--srf:#FFFFFF;--line:#DFD7CF;--box:#E8E1D9;--ok:#178A6B;--warn:#B4541B;--warnt:#FBE4D2;--dk:#1A1411;--dks:#261D18;--dkl:#352822;--dkt:#C5B7AC;--dka:#FF9B62}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1411;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:700 13px/1.2 Archivo,sans-serif;color:#1A1411}
+.dv-sub{font:400 12.5px/1.55 Archivo,sans-serif;color:rgba(20,18,28,.58);margin:0 0 24px;max-width:660px}
+.dv-opts{display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(20,18,28,.09);color:#1A1411;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:600 12px/1.3 Archivo,sans-serif;color:rgba(20,18,28,.7)}
+.dv-next{margin:28px 0 0;font:12px/1.6 Archivo,sans-serif;color:rgba(20,18,28,.5)}
+.row{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:9px;width:296px;flex:none}
+.ph{width:100%;box-sizing:border-box;background:#fff;border:2px solid #1A1411;border-radius:30px;padding:7px;box-shadow:0 6px 0 rgba(20,18,28,.07)}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:4px 12px 6px;font:600 9px Archivo,sans-serif;color:#98A1AC;letter-spacing:.04em}
+.scr{height:566px;background:#F3F0EC;border-radius:23px;padding:16px 15px;overflow:hidden;display:flex;flex-direction:column;gap:11px;position:relative}
+.pill{height:4px;width:84px;background:#D2D8E1;border-radius:99px;margin:8px auto 3px}
+.cap{font:500 11px/1.4 Archivo,sans-serif;color:rgba(20,18,28,.5);text-align:center}
+.hd{font:400 30px/0.95 'Bebas Neue',sans-serif;letter-spacing:.006em;color:#1A1411;margin:0}
+.hd-s{font:400 21px/1.0 'Bebas Neue',sans-serif;letter-spacing:.012em;color:#1A1411;margin:0}
+.kick{font:700 9px Archivo,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8F2F08;margin:0}
+.mut{font:500 10.5px/1.4 Archivo,sans-serif;color:rgba(20,18,28,.5);margin:0}
+.bdy{font:500 12px/1.45 Archivo,sans-serif;color:#1A1411;margin:0}
+.av{width:26px;height:26px;border-radius:99px;background:#E8E1D9;display:flex;align-items:center;justify-content:center;font:700 9.5px Archivo,sans-serif;color:#4E5763}
+.avx{width:26px;height:26px;border-radius:99px;border:1.5px dashed #BAC1CC;display:flex;align-items:center;justify-content:center;font:700 11px Archivo,sans-serif;color:#A5ADBA}
+.btn2{border-radius:99px;padding:11px 14px;font:700 11.5px Archivo,sans-serif;text-align:center}
+.tag2{border-radius:99px;padding:3px 9px;font:700 8.5px Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;display:inline-block}
+.dash{border:1.5px dashed #DFD7CF;border-radius:14px}
+.stp{display:flex;align-items:center;gap:8px}
+.stp-b{width:26px;height:26px;border-radius:99px;background:#E8E1D9;display:flex;align-items:center;justify-content:center;font:700 12px Archivo,sans-serif;color:rgba(20,18,28,.6)}
+.stp-p{width:26px;height:26px;border-radius:99px;background:#C2410C;display:flex;align-items:center;justify-content:center;font:700 12px Archivo,sans-serif;color:#fff}
+.qty{font:700 12px Archivo,sans-serif;color:#1A1411;min-width:26px;text-align:center}
+</style></helmet>
+
+<section class="dv-turn" id="final">
+<div class="dv-thd"><span class="dv-tid">FINAL</span><span class="dv-tname">FlatMeal — shared cart, end to end</span></div>
+<p class="dv-sub">Voting is gone. The flat wakes up to an empty cart and a ranked set of suggestions; whoever gets there first says who's eating and picks a main course, and accompaniments and sides are suggested around it. Anyone can edit it live until it locks. Quantities default to the headcount and follow it. Max mains is a soft guardrail set during onboarding — skippable, and it warns rather than blocks. Seventeen screens, in the order a flatmate meets them.</p>
+<div class="dv-opts"><div class="dv-opt" id="f1">
+<div class="dv-olabel"><a class="dv-oid" href="#f1">f1</a>Onboarding → the shared cart → dispatch → edge states</div>
+<div class="row">
+
+<div class="col"><div class="ph"><div class="bar"><span>9:41</span><span>▮▮▮</span></div><div class="scr" style="justify-content:center">
+<div style="width:56px;height:56px;border-radius:20px;background:var(--acc)"></div>
+<p class="hd" style="font-size:40px;line-height:0.92;margin-top:16px">dinner,<br>in one<br>shared cart.</p>
+<p class="bdy" style="color:rgba(20,18,28,.55);max-width:225px;margin-top:6px">Four flatmates, one cook, one list everybody can touch.</p>
+<div style="margin-top:26px;display:flex;flex-direction:column;gap:9px">
+<div style="background:var(--srf);border:1.5px solid var(--line);border-radius:99px;padding:13px 17px"><p class="mut">you@example.com</p></div>
+<div class="btn2" style="background:var(--acc);color:#fff;padding:13px">Send me the magic link</div>
+<p class="mut" style="text-align:center">No passwords. You'd only forget it.</p>
+</div>
+</div><div class="pill"></div></div><p class="cap">01 · Sign in</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:43</span><span>▮▮▮</span></div><div class="scr">
+<p class="kick">Step 1 of 3</p>
+<p class="hd" style="margin-top:5px">what will<br>you not eat?</p>
+<p class="bdy" style="color:rgba(20,18,28,.55)">This filters whatever lands in the cart, so be honest, not dramatic.</p>
+<div style="display:flex;gap:7px;margin-top:6px">
+<div class="btn2" style="flex:1;background:var(--acc);color:#fff;padding:11px 4px">Veg</div>
+<div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink);padding:11px 4px">Egg</div>
+<div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink);padding:11px 4px">Non-veg</div>
+</div>
+<div class="dash" style="padding:12px;display:flex;justify-content:space-between;align-items:center"><p class="bdy">Jain — no onion, no garlic</p><div style="width:36px;height:20px;border-radius:99px;background:var(--box)"></div></div>
+<p class="kick" style="margin-top:4px;color:rgba(20,18,28,.4)">Allergies — these are absolute</p>
+<div style="display:flex;flex-wrap:wrap;gap:7px">
+<div class="tag2" style="background:var(--acc);color:#fff;padding:9px 13px">Peanut</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.6);padding:9px 13px">Dairy</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.6);padding:9px 13px">Gluten</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.6);padding:9px 13px">Shellfish</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.6);padding:9px 13px">Soy</div>
+</div>
+<div style="background:var(--srf);border-radius:16px;padding:12px 13px;display:flex;justify-content:space-between;align-items:center;margin-top:4px"><div><p class="kick">Your usual roti</p><p class="mut">how quantities get filled for you</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">2</p><div class="stp-p">+</div></div></div>
+<div style="margin-top:auto"><div class="btn2" style="background:var(--acc);color:#fff;padding:13px">Next</div></div>
+</div><div class="pill"></div></div><p class="cap">02 · Your diet, the cart's filter</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:44</span><span>▮▮▮</span></div><div class="scr">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Step 2 of 3 · optional</p><p class="mut" style="font-weight:800">Skip</p></div>
+<p class="hd" style="margin-top:5px">how much<br>is too much?</p>
+<p class="bdy" style="color:rgba(20,18,28,.55)">Soft limits. We'll warn when the cart goes past them, never stop you.</p>
+<div style="background:var(--srf);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:6px">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Main courses per meal</p><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div class="dash" style="padding:9px 11px"><p class="mut">Defaults to <span style="font-weight:800;color:var(--ink)">4</span> — one per flatmate. Change it if your kitchen is more realistic than that.</p></div>
+</div>
+<div style="background:var(--srf);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Accompaniments</p><div class="stp"><div class="stp-b">−</div><p class="qty">2</p><div class="stp-p">+</div></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Sides</p><div class="stp"><div class="stp-b">−</div><p class="qty">2</p><div class="stp-p">+</div></div></div>
+</div>
+<div class="dash" style="padding:11px 13px"><p class="mut">Quantities always start at the headcount — 4 people, 4 portions — and follow it when someone drops out.</p></div>
+<div style="margin-top:auto;display:flex;gap:8px"><div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink);padding:13px">Skip this</div><div class="btn2" style="flex:2;background:var(--acc);color:#fff;padding:13px">Set the limits</div></div>
+</div><div class="pill"></div></div><p class="cap">03 · Soft limits — skippable, defaults to headcount</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:46</span><span>▮▮▮</span></div><div class="scr">
+<p class="kick">Step 3 of 3</p>
+<p class="hd" style="margin-top:5px">who's actually<br>doing the<br>cooking?</p>
+<p class="bdy" style="color:rgba(20,18,28,.55)">They never install anything. They get one clear WhatsApp message, in their language.</p>
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:6px">
+<div style="background:var(--srf);border:1.5px solid var(--line);border-radius:99px;padding:13px 17px"><p class="mut">Cook's name</p></div>
+<div style="background:var(--srf);border:1.5px solid var(--line);border-radius:99px;padding:13px 17px"><p class="mut">+91 …</p></div>
+<div style="display:flex;gap:7px">
+<div class="btn2" style="flex:1;background:var(--acc);color:#fff;padding:11px 4px">Hindi</div>
+<div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink);padding:11px 4px">Kannada</div>
+<div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink);padding:11px 4px">English</div>
+</div>
+</div>
+<div class="dash" style="padding:12px;margin-top:4px"><p class="mut" style="font-weight:800;color:var(--ink)">Drag the other three in</p><p class="mut">flatmeal.app/j/402-kx9 — tap to copy</p></div>
+<div style="margin-top:auto"><div class="btn2" style="background:var(--acc);color:#fff;padding:13px">Done. Let's eat.</div></div>
+</div><div class="pill"></div></div><p class="cap">04 · The cook, and the invite</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span></span><span></span></div><div class="scr" style="background:var(--dk);justify-content:flex-start">
+<p style="font:400 58px/0.9 'Bebas Neue',sans-serif;color:var(--bg);text-align:center;margin:12px 0 0">9:00</p>
+<p class="mut" style="color:var(--dkt);text-align:center">Tuesday, 9 August</p>
+<div style="background:rgba(241,240,246,.95);border-radius:20px;padding:13px;margin-top:22px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;gap:8px;align-items:center"><div style="width:17px;height:17px;border-radius:5px;background:var(--acc)"></div><p class="mut" style="font-weight:700;flex:1">FlatMeal</p><p class="mut">now</p></div>
+<p class="bdy" style="font-weight:800;font-size:13px">Tonight's cart is empty. Somebody has to go first.</p>
+<p class="mut">Not eaten lately — tap to start</p>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.7);padding:8px 11px">Palak Paneer</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.7);padding:8px 11px">Dal Tadka</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.7);padding:8px 11px">Rajma</div>
+<div class="tag2" style="background:var(--srf);border:1.5px solid var(--line);color:rgba(20,18,28,.7);padding:8px 11px">Chole</div>
+</div>
+<div style="display:flex;gap:7px;margin-top:3px"><div class="btn2" style="flex:1;background:var(--ink);color:var(--bg);padding:9px">Open the cart</div><div class="btn2" style="flex:1;background:transparent;border:1.5px solid var(--line);color:rgba(20,18,28,.6);padding:9px">I'm out</div></div>
+</div>
+</div><div class="pill"></div></div><p class="cap">05 · The nudge — empty cart, ranked suggestions</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:41</span><span>▮▮▮</span></div><div class="scr">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div><p class="kick">Tue 9 Aug · Flat 402</p><p class="hd" style="margin-top:6px">good morning,<br>four appetites</p></div>
+<div class="tag2" style="background:var(--tint);color:var(--deep);white-space:nowrap">12 days</div>
+</div>
+<div style="display:flex;gap:11px;align-items:flex-start;margin-top:4px"><div style="width:34px;flex:none;text-align:right"><p class="mut" style="font-weight:700">08:00</p></div><div class="dash" style="flex:1;padding:10px 13px"><p class="bdy" style="opacity:.5">Breakfast &amp; lunch — coming later</p></div></div>
+<div style="display:flex;gap:11px;align-items:flex-start">
+<div style="width:34px;flex:none;text-align:right"><p class="mut" style="font-weight:700;color:var(--deep)">20:00</p></div>
+<div style="flex:1;background:var(--srf);border:2px solid var(--ink);border-radius:16px;padding:13px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Dinner cart · empty</p><p class="mut" style="font-weight:700">locks 11:00</p></div>
+<p class="hd-s">nothing in the cart yet</p>
+<div class="dash" style="padding:14px 13px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center">
+<div style="width:34px;height:34px;border-radius:11px;border:1.5px dashed var(--line)"></div>
+<p class="mut" style="font-weight:800;color:var(--ink)">Pick a main course to start</p>
+<p class="mut">Accompaniments and sides get suggested once there's something to go with.</p>
+</div>
+<div style="display:flex;gap:6px;align-items:center"><div class="avx">?</div><div class="avx">?</div><div class="avx">?</div><div class="avx">?</div><p class="mut" style="margin-left:4px">nobody's opened it</p></div>
+<div class="btn2" style="background:var(--acc);color:#fff">Start the cart</div>
+</div>
+</div>
+<div style="display:flex;gap:11px;align-items:center;opacity:.45"><div style="width:34px;flex:none;text-align:right"><p class="mut" style="font-weight:700">Wed</p></div><div style="flex:1;height:1.5px;background:var(--line)"></div><p class="mut">cart opens 09:00</p></div>
+<div style="margin-top:auto;display:flex;gap:8px;background:var(--srf);border-radius:99px;padding:6px">
+<div class="btn2" style="flex:1;background:var(--tint);color:var(--deep);padding:9px">Today</div>
+<div class="btn2" style="flex:1;color:rgba(20,18,28,.45);padding:9px">Groceries</div>
+<div class="btn2" style="flex:1;color:rgba(20,18,28,.45);padding:9px">Flat</div>
+</div>
+</div><div class="pill"></div></div><p class="cap">06 · Home — cart empty until the first pick</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:43</span><span>▮▮▮</span></div><div class="scr">
+<p class="kick">Starting the cart</p>
+<p class="hd" style="margin-top:4px">who are you<br>picking for?</p>
+<p class="bdy" style="color:rgba(20,18,28,.55)">Quantities fill themselves from what each person eats. Leave someone out and they can add themselves later.</p>
+<div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
+<div style="background:var(--srf);border:2px solid var(--acc);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div class="av">SH</div><div style="flex:1"><p class="bdy" style="font-weight:800">Shivam (you)</p><p class="mut">veg · no peanut</p></div><div style="width:21px;height:21px;border-radius:7px;background:var(--acc);flex:none"></div></div>
+<div style="background:var(--srf);border:2px solid var(--acc);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div class="av">AS</div><div style="flex:1"><p class="bdy" style="font-weight:800">Ashutosh</p><p class="mut">non-veg</p></div><div style="width:21px;height:21px;border-radius:7px;background:var(--acc);flex:none"></div></div>
+<div style="background:var(--srf);border:2px solid var(--acc);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div class="av">SB</div><div style="flex:1"><p class="bdy" style="font-weight:800">Shambhav</p><p class="mut">eggetarian</p></div><div style="width:21px;height:21px;border-radius:7px;background:var(--acc);flex:none"></div></div>
+<div style="background:var(--srf);border:2px solid var(--acc);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div class="av">SR</div><div style="flex:1"><p class="bdy" style="font-weight:800">Shri</p><p class="mut">veg · Jain</p></div><div style="width:21px;height:21px;border-radius:7px;background:var(--acc);flex:none"></div></div>
+</div>
+<div style="margin-top:auto;background:var(--srf);border-radius:18px;padding:12px 13px;display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;justify-content:space-between"><p class="bdy" style="font-weight:800">4 eating</p><p class="mut">the whole flat</p></div>
+<div style="display:flex;justify-content:space-between"><p class="bdy">Roti will start at</p><p class="bdy" style="font-weight:800;color:var(--deep)">10</p></div>
+<div style="display:flex;justify-content:space-between"><p class="bdy">Everything else at</p><p class="bdy" style="font-weight:800;color:var(--deep)">×4</p></div>
+</div>
+<div class="btn2" style="background:var(--acc);color:#fff">Pick the main course</div>
+</div><div class="pill"></div></div><p class="cap">07 · Who's eating — quantities from their portions</p></div>
+
+
+<div class="col"><div class="ph"><div class="bar"><span>9:44</span><span>▮▮▮</span></div><div class="scr">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Dinner cart · locks 11:00</p><div class="tag2" style="background:var(--ink);color:var(--bg)">42:11</div></div>
+<div style="display:flex;gap:6px;background:var(--srf);border-radius:99px;padding:5px">
+<div class="btn2" style="flex:1;background:var(--tint);color:var(--deep);padding:8px 0">Mains · 1</div>
+<div class="btn2" style="flex:1;color:rgba(20,18,28,.45);padding:8px 0">With it · 2</div>
+<div class="btn2" style="flex:1;color:rgba(20,18,28,.45);padding:8px 0">Sides · 1</div>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><p class="kick" style="color:rgba(20,18,28,.45)">In the cart</p><p class="mut" style="font-weight:800">1 of 4 allowed</p></div>
+<div style="background:var(--srf);border-radius:13px;padding:9px 11px;display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:10px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Palak Paneer</p><p class="mut">suggested · veg</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px"><p class="kick" style="color:rgba(20,18,28,.45)">Suggestions</p><p class="mut">what you haven't eaten lately</p></div>
+<div style="display:flex;flex-direction:column;gap:6px;overflow:hidden">
+<div style="background:var(--srf);border-radius:13px;padding:9px 11px;display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:10px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Dal Tadka</p><p class="mut">veg · 9 days ago</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:13px;padding:9px 11px;display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:10px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Rajma</p><p class="mut">veg · 14 days ago</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:13px;padding:9px 11px;display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:10px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Chicken Curry</p><p class="mut">non-veg · Shri won't eat it</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:13px;padding:9px 11px;display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:10px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Egg Curry</p><p class="mut">egg · 11 days ago</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:13px;padding:9px 11px;display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:10px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Chole</p><p class="mut">veg · 6 days ago</p></div><div class="stp-p">+</div></div>
+<div class="dash" style="padding:9px 11px;display:flex;align-items:center;gap:8px"><p class="mut" style="flex:1;font-weight:800;color:var(--deep)">4 more, or search</p><p class="mut" style="font-weight:800;color:var(--deep)">→</p></div>
+</div>
+<div style="margin-top:auto;display:flex;gap:8px;align-items:center;padding-top:4px"><div style="display:flex;gap:5px"><div class="av">SH</div><div class="av">AS</div><div class="avx">?</div><div class="avx">?</div></div><div class="btn2" style="flex:1;background:var(--acc);color:#fff">Save · 4 items</div></div>
+</div><div class="pill"></div></div><p class="cap">08 · Cart — a tab per course, suggestions below</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:47</span><span>▮▮▮</span></div><div class="scr" style="justify-content:flex-end;background:rgba(20,18,28,.35)">
+<div style="background:var(--bg);border-radius:24px 24px 0 0;margin:0 -15px -16px;padding:16px 15px 20px;display:flex;flex-direction:column;gap:11px">
+<div style="width:40px;height:4px;background:var(--line);border-radius:99px;align-self:center"></div>
+<p class="hd">add a main course</p>
+<div style="background:var(--srf);border:1.5px solid var(--line);border-radius:99px;padding:11px 15px"><p class="mut">Search dishes…</p></div>
+<p class="kick" style="color:rgba(20,18,28,.4)">Goes with what's already in</p>
+<div style="display:flex;flex-direction:column;gap:7px">
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:12px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Chicken Curry</p><p class="mut">non-veg · Shri won't touch it</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:12px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Dal Tadka</p><p class="mut">veg · not eaten in 9 days</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:12px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Egg Curry</p><p class="mut">egg</p></div><div class="stp-p">+</div></div>
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:12px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Rajma</p><p class="mut">veg</p></div><div class="stp-p">+</div></div>
+</div>
+<div class="dash" style="padding:10px 12px"><p class="mut">Anything you add starts at <span style="font-weight:800;color:var(--ink)">×4</span>, the headcount.</p></div>
+<div class="btn2" style="background:var(--acc);color:#fff;padding:13px">Add to cart</div>
+</div>
+</div><div class="pill"></div></div><p class="cap">09 · Adding — search, when suggestions aren't enough</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:49</span><span>▮▮▮</span></div><div class="scr">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Dinner cart · locks 11:00</p><div class="tag2" style="background:var(--ink);color:var(--bg)">37:02</div></div>
+<div style="background:var(--warnt);border-radius:16px;padding:12px 13px;display:flex;flex-direction:column;gap:6px;margin-top:4px">
+<p class="kick" style="color:var(--warn)">Beyond your limit — not a rule</p>
+<p class="bdy" style="font-weight:800;color:var(--warn)">That's 5 main courses for 4 people.</p>
+<p class="mut" style="color:var(--warn)">You set the ceiling at 4. Sunita ji can absolutely cook five, she'll just have opinions about it.</p>
+<div style="display:flex;gap:7px;margin-top:2px"><div class="btn2" style="flex:1;background:var(--srf);color:var(--warn);padding:9px">Undo</div><div class="btn2" style="flex:1;background:var(--warn);color:#fff;padding:9px">Keep it anyway</div></div>
+</div>
+<p class="kick" style="color:rgba(20,18,28,.45);margin-top:4px">Main courses · 5</p>
+<div style="display:flex;flex-direction:column;gap:7px">
+<div style="background:var(--srf);border-radius:14px;padding:9px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Palak Paneer</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div style="background:var(--srf);border-radius:14px;padding:9px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Chicken Curry</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div style="background:var(--srf);border-radius:14px;padding:9px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Dal Tadka</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div style="background:var(--srf);border-radius:14px;padding:9px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Egg Curry</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div style="background:var(--srf);border:2px solid var(--warn);border-radius:14px;padding:9px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Rajma</p><p class="mut" style="color:var(--warn)">added by Ashutosh, just now</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+</div>
+<div style="margin-top:auto"><div class="btn2" style="background:var(--acc);color:#fff">Save · 8 items</div></div>
+</div><div class="pill"></div></div><p class="cap">10 · Over the soft limit — warns, never blocks</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>10:06</span><span>▮▮▮</span></div><div class="scr">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Dinner cart · live</p><div style="display:flex;gap:5px;align-items:center"><div style="width:7px;height:7px;border-radius:99px;background:var(--ok)"></div><p class="mut" style="font-weight:800">3 editing</p></div></div>
+<p class="hd" style="margin-top:4px">shri is out.<br>everything<br>rescaled.</p>
+<div style="background:var(--tint);border-radius:16px;padding:12px 13px;display:flex;flex-direction:column;gap:5px;margin-top:4px">
+<p class="kick">Headcount changed · 4 → 3</p>
+<p class="bdy" style="color:var(--deep)">Every quantity dropped by one portion. Roti went 10 → 8. Nobody had to do maths.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:7px;margin-top:4px">
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Palak Paneer</p><p class="mut">was ×4</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">3</p><div class="stp-p">+</div></div></div>
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Roti</p><p class="mut">was ×10</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">8</p><div class="stp-p">+</div></div></div>
+<div style="background:var(--srf);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center"><div style="flex:1"><p class="bdy" style="font-weight:800">Jeera Rice</p><p class="mut">was ×4</p></div><div class="stp"><div class="stp-b">−</div><p class="qty">3</p><div class="stp-p">+</div></div></div>
+</div>
+<p class="kick" style="color:rgba(20,18,28,.4);margin-top:6px">Who did what</p>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;gap:9px;align-items:center"><div class="av">AS</div><div style="flex:1"><p class="bdy"><span style="font-weight:800">Ashutosh</span> added Rajma</p><p class="mut">10:02</p></div></div>
+<div style="display:flex;gap:9px;align-items:center"><div class="av">SR</div><div style="flex:1"><p class="bdy"><span style="font-weight:800">Shri</span> is out tonight</p><p class="mut">10:05 · "office dinner"</p></div></div>
+</div>
+</div><div class="pill"></div></div><p class="cap">11 · Live — headcount drives quantities</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>11:00</span><span>▮▮▮</span></div><div class="scr" style="background:var(--dk)">
+<p class="kick" style="color:var(--dka);text-align:center">cart locked</p>
+<div style="background:var(--dks);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:11px;margin-top:6px">
+<div style="display:flex;gap:11px;align-items:center"><div style="width:48px;height:48px;border-radius:16px;background:var(--dkl);flex:none"></div><div style="flex:1"><p style="font:400 22px/0.95 'Bebas Neue',sans-serif;color:var(--bg);margin:0">Palak Paneer</p><p class="mut" style="color:var(--dkt)">main · ×3</p></div></div>
+<div style="height:1px;background:var(--dkl)"></div>
+<div style="display:flex;gap:11px;align-items:center"><div style="width:48px;height:48px;border-radius:16px;background:var(--dkl);flex:none"></div><div style="flex:1"><p style="font:400 22px/0.95 'Bebas Neue',sans-serif;color:var(--bg);margin:0">Dal Tadka</p><p class="mut" style="color:var(--dkt)">main · ×3</p></div></div>
+<div style="height:1px;background:var(--dkl)"></div>
+<div style="display:flex;gap:11px;align-items:center"><div style="width:48px;height:48px;border-radius:99px;background:var(--dkl);flex:none"></div><div style="flex:1"><p style="font:400 22px/0.95 'Bebas Neue',sans-serif;color:var(--bg);margin:0">Roti</p><p class="mut" style="color:var(--dkt)">accompaniment · ×8</p></div></div>
+<div style="height:1px;background:var(--dkl)"></div>
+<div style="display:flex;gap:11px;align-items:center"><div style="width:48px;height:48px;border-radius:99px;background:var(--dkl);flex:none"></div><div style="flex:1"><p style="font:400 22px/0.95 'Bebas Neue',sans-serif;color:var(--bg);margin:0">Jeera Rice</p><p class="mut" style="color:var(--dkt)">accompaniment · ×3</p></div></div>
+</div>
+<p class="bdy" style="color:var(--dkt);text-align:center;margin-top:6px">Two mains, two carbs, three people. Fourteen edits, zero arguments.</p>
+<div style="display:flex;gap:6px;justify-content:center;margin-top:2px"><div class="av" style="background:var(--dkl);color:var(--dkt)">SH</div><div class="av" style="background:var(--dkl);color:var(--dkt)">AS</div><div class="av" style="background:var(--dkl);color:var(--dkt)">SB</div></div>
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+<div class="tag2" style="background:var(--dkl);color:var(--dka);align-self:center">13-day streak — unbroken</div>
+<div class="btn2" style="background:var(--acc);color:#fff">One grocery list, four dishes</div>
+<div class="btn2" style="background:transparent;border:1.5px solid var(--dkl);color:var(--dkt)">See the cook's message</div>
+</div>
+</div><div class="pill"></div></div><p class="cap">12 · Locked — the cart becomes the menu</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>11:04</span><span>▮▮▮</span></div><div class="scr">
+<p class="kick">Groceries · 4 dishes · 3 people</p>
+<p class="hd" style="margin-top:4px">merged, so you<br>buy onions once</p>
+<div style="background:var(--srf);border-radius:16px;padding:11px 12px;display:flex;align-items:center;gap:9px;margin-top:4px"><div class="av">AS</div><div style="flex:1"><p class="bdy" style="font-weight:700">Ashutosh claimed the run</p><p class="mut">tap to take it off him</p></div></div>
+<div style="display:flex;flex-direction:column;gap:7px;margin-top:2px">
+<p class="kick" style="color:rgba(20,18,28,.4)">Vegetables</p>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);background:var(--acc);flex:none"></div><div style="flex:1;opacity:.42"><p class="bdy" style="text-decoration:line-through">Onion — 5 medium</p><p class="mut">both mains</p></div></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);flex:none"></div><div style="flex:1"><p class="bdy">Palak — 2 bunches</p><p class="mut">Palak Paneer</p></div></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);flex:none"></div><div style="flex:1"><p class="bdy">Tomato — 3 medium</p><p class="mut">both mains</p></div></div>
+<p class="kick" style="color:rgba(20,18,28,.4);margin-top:5px">Dairy &amp; pulses</p>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);flex:none"></div><div style="flex:1"><p class="bdy">Paneer — 210 g</p><p class="mut">scaled to 3</p></div></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);flex:none"></div><div style="flex:1"><p class="bdy">Toor dal — 250 g</p><p class="mut">Dal Tadka</p></div></div>
+<p class="kick" style="color:rgba(20,18,28,.4);margin-top:5px">Staples</p>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);flex:none"></div><div style="flex:1"><p class="bdy">Atta — 350 g</p><p class="mut">Roti · 8 pieces</p></div></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:21px;height:21px;border-radius:7px;border:2px solid var(--acc);flex:none"></div><div style="flex:1"><p class="bdy">Rice — 300 g</p><p class="mut">Jeera Rice · ×3</p></div></div>
+</div>
+<div style="margin-top:auto;background:var(--srf);border-radius:18px;padding:11px;display:flex;align-items:center;gap:9px"><p class="bdy" style="flex:1;font-weight:700">6 left to buy</p><div class="btn2" style="background:var(--ok);color:#fff;padding:9px 14px">Share</div></div>
+</div><div class="pill"></div></div><p class="cap">13 · Groceries — the cart, converted</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>15:40</span><span>▮▮▮</span></div><div class="scr">
+<p class="kick">To Sunita ji · Hindi · sends 16:00</p>
+<p class="hd" style="margin-top:4px">what she'll<br>actually read</p>
+<div style="background:var(--srf);border-radius:16px;padding:13px;display:flex;flex-direction:column;gap:8px;margin-top:6px">
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="kick">Message</p><p class="mut" style="font-weight:800;color:var(--deep)">Show English</p></div>
+<p class="bdy" style="font-weight:800">3 लोगों के लिए</p>
+<div style="display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;gap:8px;align-items:center"><div style="width:5px;height:5px;border-radius:99px;background:var(--acc)"></div><div style="flex:1;height:10px;border-radius:99px;background:var(--box);max-width:78%"></div></div>
+<div style="display:flex;gap:8px;align-items:center"><div style="width:5px;height:5px;border-radius:99px;background:var(--acc)"></div><div style="flex:1;height:10px;border-radius:99px;background:var(--box);max-width:88%"></div></div>
+<div style="display:flex;gap:8px;align-items:center"><div style="width:5px;height:5px;border-radius:99px;background:var(--acc)"></div><div style="flex:1;height:10px;border-radius:99px;background:var(--box);max-width:64%"></div></div>
+<div style="display:flex;gap:8px;align-items:center"><div style="width:5px;height:5px;border-radius:99px;background:var(--acc)"></div><div style="flex:1;height:10px;border-radius:99px;background:var(--box);max-width:82%"></div></div>
+</div>
+<p class="mut">Palak Paneer ×3 · Dal Tadka ×3 · 8 roti · jeera rice ×3, with quantities and method for each.</p>
+</div>
+<div class="dash" style="padding:11px 12px"><p class="mut" style="font-weight:800;color:var(--ink)">Note from the flat</p><p class="mut">"less spicy today — Shambhav is still recovering from Sunday"</p></div>
+<div style="display:flex;flex-direction:column;gap:0;margin-top:4px">
+<div style="display:flex;gap:10px;align-items:center"><div style="width:9px;height:9px;border-radius:99px;background:var(--ok)"></div><p class="bdy" style="flex:1">Composed &amp; translated</p><p class="mut">15:40</p></div>
+<div style="width:2px;height:12px;background:var(--line);margin-left:3.5px"></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:9px;height:9px;border-radius:99px;border:2px dashed var(--line)"></div><p class="mut" style="flex:1">Sends at 16:00</p></div>
+</div>
+<div style="margin-top:auto;display:flex;gap:8px"><div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink)">Edit the note</div><div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink)">Send it myself</div></div>
+</div><div class="pill"></div></div><p class="cap">14 · Cook message — pre-dispatch</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>16:01</span><span>▮▮▮</span></div><div class="scr">
+<div class="tag2" style="background:var(--ok);color:#fff;align-self:flex-start">Delivered</div>
+<p class="hd" style="font-size:32px;margin-top:8px">dinner is<br>somebody else's<br>job now.</p>
+<div style="display:flex;flex-direction:column;gap:0;margin-top:8px">
+<div style="display:flex;gap:10px;align-items:center"><div style="width:9px;height:9px;border-radius:99px;background:var(--ok)"></div><p class="bdy" style="flex:1">Composed in English</p><p class="mut">16:00</p></div>
+<div style="width:2px;height:12px;background:var(--line);margin-left:3.5px"></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:9px;height:9px;border-radius:99px;background:var(--ok)"></div><p class="bdy" style="flex:1">Translated to Hindi</p><p class="mut">16:00</p></div>
+<div style="width:2px;height:12px;background:var(--line);margin-left:3.5px"></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:9px;height:9px;border-radius:99px;background:var(--ok)"></div><p class="bdy" style="flex:1;font-weight:800">Delivered on WhatsApp</p><p class="mut">16:01</p></div>
+</div>
+<div style="background:var(--srf);border-radius:16px;padding:13px;display:flex;flex-direction:column;gap:7px;margin-top:8px">
+<p class="kick">Sent · Hindi</p>
+<div style="height:10px;border-radius:99px;background:var(--box);width:88%"></div>
+<div style="height:10px;border-radius:99px;background:var(--box);width:96%"></div>
+<div style="height:10px;border-radius:99px;background:var(--box);width:70%"></div>
+<div style="height:10px;border-radius:99px;background:var(--box);width:92%;margin-top:4px"></div>
+<div style="height:10px;border-radius:99px;background:var(--box);width:58%"></div>
+</div>
+<div style="margin-top:auto" class="dash"><p class="mut" style="padding:11px 13px">Tomorrow's cart opens at 09:00, and we'll ask whether any of tonight was actually good.</p></div>
+</div><div class="pill"></div></div><p class="cap">15 · Delivered — the day closes</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>9:41</span><span>▮▮▮</span></div><div class="scr">
+<p class="hd" style="font-size:32px">the flat</p>
+<div style="background:var(--srf);border-radius:18px;padding:13px;display:flex;flex-direction:column;gap:10px;margin-top:4px">
+<p class="kick">Four of you</p>
+<div style="display:flex;gap:9px;align-items:center"><div class="av">SH</div><div style="flex:1"><p class="bdy" style="font-weight:700">Shivam (you)</p><p class="mut">Veg · no peanut</p></div></div>
+<div style="display:flex;gap:9px;align-items:center"><div class="av">AS</div><div style="flex:1"><p class="bdy" style="font-weight:700">Ashutosh</p><p class="mut">Non-veg</p></div></div>
+<div style="display:flex;gap:9px;align-items:center"><div class="av">SB</div><div style="flex:1"><p class="bdy" style="font-weight:700">Shambhav</p><p class="mut">Eggetarian</p></div></div>
+<div style="display:flex;gap:9px;align-items:center"><div class="av">SR</div><div style="flex:1"><p class="bdy" style="font-weight:700">Shri</p><p class="mut">Veg · Jain</p></div></div></div>
+<div style="background:var(--srf);border-radius:18px;padding:13px;display:flex;flex-direction:column;gap:9px">
+<p class="kick">Soft limits</p>
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="bdy">Main courses</p><div class="stp"><div class="stp-b">−</div><p class="qty">4</p><div class="stp-p">+</div></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><p class="bdy">Accompaniments</p><div class="stp"><div class="stp-b">−</div><p class="qty">2</p><div class="stp-p">+</div></div></div>
+</div>
+<div style="background:var(--srf);border-radius:18px;padding:13px;display:flex;flex-direction:column;gap:8px">
+<p class="kick">The daily rhythm</p>
+<div style="display:flex;justify-content:space-between"><p class="bdy">Cart opens</p><p class="bdy" style="font-weight:800">09:00</p></div>
+<div style="display:flex;justify-content:space-between"><p class="bdy">Cart locks</p><p class="bdy" style="font-weight:800">11:00</p></div>
+<div style="display:flex;justify-content:space-between"><p class="bdy">Cook gets told</p><p class="bdy" style="font-weight:800">16:00</p></div>
+</div>
+<div style="margin-top:auto"><p class="mut" style="text-align:center">Leave flat — and fend for yourself</p></div>
+</div><div class="pill"></div></div><p class="cap">16 · Flat settings</p></div>
+
+<div class="col"><div class="ph"><div class="bar"><span>10:58</span><span>▮▮▮</span></div><div class="scr">
+<div class="tag2" style="background:var(--warnt);color:var(--warn);align-self:flex-start">Cart still empty · 2 min left</div>
+<p class="hd" style="font-size:32px;margin-top:8px">nobody has<br>picked anything.<br>anything at all.</p>
+<p class="bdy" style="color:rgba(20,18,28,.55)">Two hours, four flatmates, an empty cart. At 11:00 we either send Sunita ji this fallback or tell her tonight's off.</p>
+<div style="background:var(--srf);border-radius:18px;padding:13px;display:flex;flex-direction:column;gap:9px;margin-top:6px">
+<p class="kick">The fallback, if nobody moves</p>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:38px;height:38px;border-radius:12px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Dal Tadka</p><p class="mut">safe for all four diets</p></div><p class="mut" style="font-weight:800">×4</p></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:38px;height:38px;border-radius:99px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Roti</p><p class="mut">from everyone's usual</p></div><p class="mut" style="font-weight:800">×10</p></div>
+<div style="display:flex;gap:10px;align-items:center"><div style="width:38px;height:38px;border-radius:99px;background:var(--box);flex:none"></div><div style="flex:1"><p class="bdy" style="font-weight:800">Jeera Rice</p><p class="mut">the eternal default</p></div><p class="mut" style="font-weight:800">×4</p></div>
+</div>
+<div style="display:flex;gap:6px;margin-top:6px;align-items:center"><div class="avx">?</div><div class="avx">?</div><div class="avx">?</div><div class="avx">?</div><p class="mut" style="margin-left:5px">a proud day for participation</p></div>
+<div style="margin-top:auto;display:flex;gap:8px"><div class="btn2" style="flex:1;background:var(--srf);border:1.5px solid var(--line);color:var(--ink)">No dinner tonight</div><div class="btn2" style="flex:1;background:var(--acc);color:#fff">Take the fallback</div></div>
+</div><div class="pill"></div></div><p class="cap">17 · Edge — empty cart at lock time</p></div>
+
+</div>
+</div></div>
+<p class="dv-next">Open: the everyone's-out state, conflict when two people edit the same line at once, and whether the cart should carry a rough cost.</p>
+</section>
+</x-dc>
+</body>
+</html>

@@ -23,6 +23,8 @@ create table flats (
   poll_close_time time not null default '11:00',
   dispatch_time time not null default '16:00',
   tz text not null default 'Asia/Kolkata',
+  max_mains int,                              -- soft cap on distinct main-course cart lines; null = no limit set (onboarding step is skippable). Warn-only, never enforced server-side.
+  max_accompaniments int,                     -- soft cap covering both 'accompaniment' and 'side' cart lines combined; null = no limit set
   created_by uuid references profiles(id),
   created_at timestamptz not null default now()
 );
@@ -55,7 +57,7 @@ create table recipes (
   name text not null,
   cuisine text not null,                      -- north_indian | south_indian | ...
   base text not null,                         -- primary base for variety heuristic: paneer|dal|rice|roti-sabzi|...
-  kind text not null default 'main' check (kind in ('main','accompaniment')),  -- 'accompaniment' = roti/rice/etc, paired via recipe_accompaniments
+  kind text not null default 'main' check (kind in ('main','accompaniment','side')),  -- 'accompaniment' = roti/rice/etc, 'side' = pickle/raita/papad/salad; both paired to mains via recipe_accompaniments
   diet_class text not null check (diet_class in ('veg','egg','nonveg')),
   jain_ok boolean not null default false,
   allergens text[] not null default '{}',
@@ -106,23 +108,14 @@ create table daily_polls (
   flat_id uuid not null references flats(id) on delete cascade,
   poll_date date not null,
   status text not null default 'open' check (status in ('open','closed','cancelled','dispatched')),
-  winner_recipe_id uuid references recipes(id),
-  winner_reason text check (winner_reason in ('votes','tiebreak_lru','auto_no_votes')),
-  -- Accompaniment (roti/rice/etc) is a second, independent vote whose
-  -- candidates depend on winner_recipe_id, so it can't be decided until
-  -- after the main dish is known: options are picked by close_poll right
-  -- after winner_recipe_id is set, and the vote itself is tallied by
-  -- dispatch_cook (reusing the existing close->dispatch window instead of
-  -- a new cron step). 'none_available' means the winning dish has no
-  -- curated accompaniment (e.g. Vegetable Pulao IS the starch) — distinct
-  -- from 'auto_no_votes' (options existed, nobody voted).
-  winner_accompaniment_recipe_id uuid references recipes(id),
-  winner_accompaniment_reason text check (winner_accompaniment_reason in ('votes','tiebreak_lru','auto_no_votes','none_available')),
   flat_note text,                             -- 'less spicy today' — editable until dispatch
   created_at timestamptz not null default now(),
   unique (flat_id, poll_date)                 -- idempotent creation
 );
 
+-- Suggested mains for the day — a fixed candidate list computed once by
+-- create_poll (seeded by flat_id+poll_date). "Offered," not "voted on" — a
+-- recipe here may or may not also appear in cart_items.
 create table poll_options (
   poll_id uuid not null references daily_polls(id) on delete cascade,
   recipe_id uuid not null references recipes(id),
@@ -130,18 +123,10 @@ create table poll_options (
   primary key (poll_id, recipe_id)
 );
 
-create table votes (
-  poll_id uuid not null references daily_polls(id) on delete cascade,
-  user_id uuid not null references profiles(id) on delete cascade,
-  recipe_id uuid not null references recipes(id),
-  voted_at timestamptz not null default now(),
-  primary key (poll_id, user_id)              -- one changeable vote per member
-);
-
--- Twin of poll_options/votes for the accompaniment vote. Populated by
--- close_poll (options) once the main winner is known, not by create_poll —
--- see daily_polls.winner_accompaniment_* comment. 0 rows in
--- poll_accompaniment_options is a valid, non-error state.
+-- Suggested accompaniments — also computed once by create_poll, sourced from
+-- the union of recipe_accompaniments for all recipes in poll_options. 0 rows
+-- is a valid, non-error state (e.g. all suggested mains already are the
+-- starch, like Vegetable Pulao).
 create table poll_accompaniment_options (
   poll_id uuid not null references daily_polls(id) on delete cascade,
   recipe_id uuid not null references recipes(id),
@@ -149,12 +134,21 @@ create table poll_accompaniment_options (
   primary key (poll_id, recipe_id)
 );
 
-create table accompaniment_votes (
+-- Shared, live-edited cart: one row per (poll, recipe) — NOT per-user, unlike
+-- the old votes table. quantity is the single shared value all members see
+-- and edit; 0 means "not in the cart" and is never stored (row is deleted
+-- instead). Both main-course and accompaniment lines live in this one table,
+-- differentiated by recipes.kind via join, since a flat's dinner can include
+-- any number of dishes of either kind (no cap on distinct dishes, only on
+-- each dish's quantity, enforced client-side against headcount).
+create table cart_items (
   poll_id uuid not null references daily_polls(id) on delete cascade,
-  user_id uuid not null references profiles(id) on delete cascade,
   recipe_id uuid not null references recipes(id),
-  voted_at timestamptz not null default now(),
-  primary key (poll_id, user_id)
+  quantity int not null check (quantity > 0),
+  added_by uuid references profiles(id),      -- who first added this line (attribution only)
+  updated_by uuid references profiles(id),    -- who last edited the quantity
+  updated_at timestamptz not null default now(),
+  primary key (poll_id, recipe_id)
 );
 
 create table day_attendance (                 -- "I'm out today"
@@ -165,6 +159,26 @@ create table day_attendance (                 -- "I'm out today"
   updated_at timestamptz not null default now(),
   primary key (flat_id, user_id, poll_date)
 );
+
+-- Live "who did what" feed for the cart screen (mockup: "who did what" /
+-- "Ashutosh added Rajma" / "Shri is out tonight"). Bespoke rather than
+-- derived from cart_items/day_attendance directly: those tables only hold
+-- current state (one row per poll+recipe / flat+user+date), so a second
+-- edit overwrites the first with no way to reconstruct a chronological feed
+-- afterwards. Written by the app in the same call that mutates cart_items
+-- or day_attendance, not via a trigger.
+create table activity_log (
+  id uuid primary key default gen_random_uuid(),
+  flat_id uuid not null references flats(id) on delete cascade,
+  poll_id uuid references daily_polls(id) on delete cascade,   -- null for events not tied to a specific day's poll
+  actor_id uuid references profiles(id),
+  event_type text not null check (event_type in
+    ('cart_add','cart_remove','cart_quantity_change','attendance_change')),
+  recipe_id uuid references recipes(id),        -- set for cart_* events, null for attendance_change
+  detail jsonb not null default '{}',           -- cart_quantity_change: {from_qty, to_qty}; attendance_change: {is_out, reason}
+  created_at timestamptz not null default now()
+);
+create index activity_log_poll on activity_log(poll_id, created_at desc);
 
 create table grocery_checks (                 -- "we already have this" ticks, realtime-synced
   poll_id uuid not null references daily_polls(id) on delete cascade,
@@ -189,9 +203,22 @@ create table dispatch_log (
   updated_at timestamptz not null default now()
 );
 
--- flat's meal history for 10-day exclusion + LRU tie-break:
--- derived from daily_polls where status='dispatched' (no separate table needed).
+-- flat's meal history for the 10-day exclusion rule: derived from cart_items
+-- joined to daily_polls where status='dispatched' (no separate history
+-- table needed — cart_items is the cart/order-line table, not a bespoke
+-- history table, so this join returns the SET of recipe ids served on each
+-- dispatched day).
 create index polls_flat_date on daily_polls(flat_id, poll_date desc);
+
+-- take_fallback_cart_item(poll_id, recipe_id, quantity): security-definer
+-- RPC letting a flat member write a cart_items row for a 'closed' (locked)
+-- poll that has zero cart_items — the empty-cart-at-lock edge state's
+-- "take the fallback" action. cart_items' own RLS blocks writes once a
+-- poll leaves 'open' (that IS the lock mechanism), so this is a narrow,
+-- guarded exception rather than a general write-after-lock allowance: it
+-- verifies flat membership, the poll's status is exactly 'closed', and the
+-- cart is still empty before inserting. See
+-- supabase/migrations/20260109000002_take_fallback_rpc.sql for the body.
 
 -- ============ pilot feedback & ops ============
 

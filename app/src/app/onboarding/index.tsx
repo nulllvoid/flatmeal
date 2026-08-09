@@ -5,8 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useSession } from '@/hooks/use-session';
+import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 
 // S0 step 1, email magic-link variant (docs/02-prd.md §F1 "or magic link
@@ -63,6 +64,8 @@ export default function OnboardingEmailScreen() {
     setLinkSent(true);
   }
 
+  const theme = useTheme();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ThemedView style={styles.container}>
@@ -75,14 +78,18 @@ export default function OnboardingEmailScreen() {
           <>
             <TextInput
               placeholder="you@example.com"
+              placeholderTextColor={theme.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
-              style={styles.input}
+              style={[styles.input, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.backgroundElement }]}
             />
-            <Pressable style={styles.primaryButton} onPress={sendMagicLink} disabled={loading || !email}>
-              <ThemedText type="smallBold" style={styles.primaryButtonText}>
+            <Pressable
+              style={[styles.primaryButton, { backgroundColor: theme.accent }, (loading || !email) && styles.disabled]}
+              onPress={sendMagicLink}
+              disabled={loading || !email}>
+              <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
                 {loading ? 'Sending…' : 'Send magic link'}
               </ThemedText>
             </Pressable>
@@ -94,7 +101,7 @@ export default function OnboardingEmailScreen() {
         )}
 
         {error && (
-          <ThemedText type="small" style={styles.errorText}>
+          <ThemedText type="small" style={{ color: theme.danger }}>
             {error}
           </ThemedText>
         )}
@@ -112,22 +119,22 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#00000030',
-    borderRadius: Spacing.two,
-    padding: Spacing.three,
+    borderWidth: 1.5,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
     fontSize: 16,
+    fontFamily: Fonts.body,
   },
   primaryButton: {
     paddingVertical: Spacing.three,
-    borderRadius: Spacing.two,
-    backgroundColor: '#3c87f7',
+    borderRadius: Radius.pill,
     alignItems: 'center',
   },
-  primaryButtonText: {
-    color: '#ffffff',
+  disabled: {
+    opacity: 0.45,
   },
-  errorText: {
-    color: '#e5484d',
+  primaryButtonText: {
+    fontFamily: Fonts.bodyBold,
   },
 });

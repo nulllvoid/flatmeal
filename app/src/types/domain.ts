@@ -9,59 +9,88 @@
 export type DietType = 'veg' | 'egg' | 'nonveg';
 export type Allergen = 'peanut' | 'dairy' | 'gluten' | 'shellfish' | 'soy';
 export type PollStatus = 'open' | 'closed' | 'cancelled' | 'dispatched';
-export type WinnerReason = 'votes' | 'tiebreak_lru' | 'auto_no_votes';
-export type AccompanimentWinnerReason = WinnerReason | 'none_available'; // 'none_available' = winning dish has no curated accompaniment (e.g. Vegetable Pulao IS the starch)
+export type RecipeKind = 'main' | 'accompaniment' | 'side';
 export type IngredientUnit = 'piece' | 'g' | 'ml' | 'bunch' | 'packet' | 'cup' | 'tbsp' | 'tsp';
 export type IngredientCategory = 'vegetable' | 'dairy' | 'staple' | 'protein' | 'other';
 
-export interface PollOptionView {
+// A shared, live-edited cart line (cart_items row) — one per (poll, recipe),
+// NOT per-user. quantity is the single shared value all members see and
+// edit.
+export interface CartLineView {
   recipeId: string;
   name: string;
   cuisine: string;
   dietClass: DietType;
-  voteCount: number;
-  votedByMe: boolean;
-  voterDisplayNames: string[];
+  kind: RecipeKind;
+  quantity: number;
+  updatedByDisplayName: string | null; // "last edited by X" social-proof equivalent
 }
 
-export interface AccompanimentOptionView {
+// A suggested dish (poll_options / poll_accompaniment_options row) —
+// "offered," not "voted on." inCart is true once it's also a cart_items row.
+export interface SuggestionView {
   recipeId: string;
   name: string;
-  voteCount: number;
-  votedByMe: boolean;
-  voterDisplayNames: string[];
+  cuisine: string;
+  dietClass: DietType;
+  kind: RecipeKind;
+  inCart: boolean;
 }
 
-export interface TodayPollView {
+// One row of the live "who did what" cart feed (activity_log). Written by
+// the client in the same call that mutates cart_items/day_attendance — see
+// docs/05-schema.sql for the table this is shaped from.
+export type ActivityEntry =
+  | { id: string; createdAt: string; actorDisplayName: string | null; eventType: 'cart_add'; recipeName: string }
+  | { id: string; createdAt: string; actorDisplayName: string | null; eventType: 'cart_remove'; recipeName: string }
+  | {
+      id: string;
+      createdAt: string;
+      actorDisplayName: string | null;
+      eventType: 'cart_quantity_change';
+      recipeName: string;
+      fromQty: number;
+      toQty: number;
+    }
+  | {
+      id: string;
+      createdAt: string;
+      actorDisplayName: string | null;
+      eventType: 'attendance_change';
+      isOut: boolean;
+      reason: string | null;
+    };
+
+export interface TodayCartView {
   pollId: string;
   pollDate: string;
-  status: PollStatus;
-  options: PollOptionView[];
+  status: PollStatus; // semantics: 'open' = cart editable, else locked
   headcount: number;
   isOutToday: boolean;
-  winnerRecipeId: string | null;
-  winnerReason: WinnerReason | null;
-  // Accompaniment (roti/rice/etc) — a second, independent vote whose
-  // options aren't known until the main dish wins (see close_poll). Empty
-  // options with winnerAccompanimentReason='none_available' is a valid,
-  // non-error state (the winning dish IS the starch, e.g. Vegetable Pulao).
-  accompanimentOptions: AccompanimentOptionView[];
-  winnerAccompanimentRecipeId: string | null;
-  winnerAccompanimentReason: AccompanimentWinnerReason | null;
-  // Derived: true only while there's an undecided accompaniment vote to show.
-  accompanimentVotingOpen: boolean;
+  suggestions: SuggestionView[]; // mains + accompaniments, from poll_options + poll_accompaniment_options
+  cartLines: CartLineView[]; // from cart_items
+  activity: ActivityEntry[]; // from activity_log, most recent first
+  isLocked: boolean; // status !== 'open'
+  maxMains: number | null; // flats.max_mains — soft, warn-only cap; null = no limit set
+  maxAccompaniments: number | null; // flats.max_accompaniments — covers both 'accompaniment' and 'side' cart lines combined
 }
 
 export interface GroceryLineView {
   ingredientId: string;
+  dishName: string; // which cart line this ingredient belongs to
   nameEn: string;
   nameHi: string | null;
   nameKn: string | null;
-  quantityLabel: string; // pre-scaled + rounded, e.g. "2 medium onions"
+  quantityLabel: string; // scaled by THIS dish's cart quantity, not headcount
   category: IngredientCategory;
   unit: IngredientUnit;
   isStaple: boolean;
   checked: boolean;
+}
+
+export interface GroceryListData {
+  dishSummary: string; // "Dal (2), Bhindi (1), Aloo Jeera (1), Roti (2)" header line
+  lines: GroceryLineView[]; // flat, category-grouped by the UI (each row carries its own dishName)
 }
 
 export interface DietaryProfileInput {

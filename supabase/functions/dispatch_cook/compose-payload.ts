@@ -10,60 +10,79 @@ export interface RecipeIngredientRow {
   sort_order: number;
 }
 
-// English payload per docs/06-whatsapp-integration.md "Composition pipeline"
-// step 1: dish, headcount, scaled ingredients, flat note. Staples are called
-// out separately ("check you have") rather than listed as buy items, same
-// convention as the grocery-list screen (CLAUDE.md). `ingredients` is
-// expected to already include the accompaniment's ingredients merged in by
-// the caller (dispatch_cook/index.ts) — this function itself doesn't know
-// which rows belong to which dish.
-export function composeEnglishPayload(params: {
-  dishName: string;
-  headcount: number;
-  ingredients: RecipeIngredientRow[];
+// One cart line: a dish plus its own quantity (headcount-equivalent),
+// method, and ingredients. Mains, accompaniments, and sides are all just
+// dishes now — no distinction at this layer, only via
+// docs/06-whatsapp-integration.md's caller-side ordering (mains first, then
+// accompaniments, then sides).
+export interface DishLine {
+  recipeId: string;
+  name: string;
+  quantity: number;
   instructions: string;
-  flatNote: string | null;
-  accompanimentName?: string | null;
-  accompanimentInstructions?: string | null;
-}): string {
-  const { dishName, headcount, ingredients, instructions, flatNote, accompanimentName, accompanimentInstructions } =
-    params;
+  ingredients: RecipeIngredientRow[];
+}
 
-  const sorted = [...ingredients].sort((a, b) => a.sort_order - b.sort_order);
-  const buyList = sorted.filter((i) => !i.is_staple);
-  const staples = sorted.filter((i) => i.is_staple);
+// In-app preview payload (cook-message-preview screen) — NOT constrained by
+// the WhatsApp template's fixed slots, since it's just displayed text. Full
+// multi-dish block, one section per dish.
+export function composeEnglishPayload(params: { dishes: DishLine[]; flatNote: string | null }): string {
+  const { dishes, flatNote } = params;
 
-  const ingredientLines = buyList
-    .map((i) => `${i.name_en} — ${scaleIngredientLabel(i.qty_per_person, i.unit, headcount)}`)
-    .join(', ');
-  const stapleLine = staples.length > 0 ? ` Check you have: ${staples.map((i) => i.name_en).join(', ')}.` : '';
+  const dishSummary = dishes.map((d) => `${d.name} (for ${d.quantity})`).join(', ');
 
-  const dishLine = accompanimentName ? `${dishName} with ${accompanimentName}` : dishName;
-  const methodSection =
-    accompanimentInstructions && accompanimentName
-      ? `Method:\n${instructions}\n\nFor the ${accompanimentName}:\n${accompanimentInstructions}`
-      : `Method:\n${instructions}`;
+  const dishSections = dishes.map((dish) => {
+    const sorted = [...dish.ingredients].sort((a, b) => a.sort_order - b.sort_order);
+    const buyList = sorted.filter((i) => !i.is_staple);
+    const staples = sorted.filter((i) => i.is_staple);
+
+    const ingredientLines = buyList
+      .map((i) => `${i.name_en} — ${scaleIngredientLabel(i.qty_per_person, i.unit, dish.quantity)}`)
+      .join(', ');
+    const stapleLine = staples.length > 0 ? ` Check you have: ${staples.map((i) => i.name_en).join(', ')}.` : '';
+
+    return [
+      `${dish.name} (${dish.quantity} ${dish.quantity === 1 ? 'person' : 'people'}):`,
+      `Ingredients: ${ingredientLines}.${stapleLine}`,
+      `Method:\n${dish.instructions}`,
+    ].join('\n');
+  });
 
   return [
-    `Today's meal: ${dishLine}`,
-    `Please cook for ${headcount} people.`,
+    `Today's meal: ${dishSummary}`,
     '',
-    `Ingredients: ${ingredientLines}.${stapleLine}`,
-    '',
-    methodSection,
+    dishSections.join('\n\n'),
     '',
     `Note: ${flatNote && flatNote.trim() ? flatNote.trim() : '—'}`,
   ].join('\n');
 }
 
-// Ingredient line only, for the {{4}} template variable — translated
-// separately from the free-text instructions body.
-export function composeIngredientLine(ingredients: RecipeIngredientRow[], headcount: number, lang: 'hi' | 'kn' | 'en'): string {
-  const sorted = [...ingredients].filter((i) => !i.is_staple).sort((a, b) => a.sort_order - b.sort_order);
-  return sorted
-    .map((i) => {
-      const name = lang === 'hi' ? (i.name_hi ?? i.name_en) : lang === 'kn' ? (i.name_kn ?? i.name_en) : i.name_en;
-      return `${name} — ${scaleIngredientLabel(i.qty_per_person, i.unit, headcount)}`;
+// {{4}}/{{5}}-bound compositions for the approved 6-slot WhatsApp template
+// (docs/06-whatsapp-integration.md) — its surrounding text is fixed
+// ("Please cook for {{3}} people") and can't be re-shaped per dish without
+// re-submitting the template for Meta approval, so {{3}} stays the flat's
+// total headcount and all per-dish detail (name, quantity, ingredients,
+// method) is pushed into the two free-text slots instead.
+export function composeIngredientLine(
+  dishes: DishLine[],
+  lang: 'hi' | 'kn' | 'en'
+): string {
+  return dishes
+    .map((dish) => {
+      const sorted = [...dish.ingredients].filter((i) => !i.is_staple).sort((a, b) => a.sort_order - b.sort_order);
+      const line = sorted
+        .map((i) => {
+          const name = lang === 'hi' ? (i.name_hi ?? i.name_en) : lang === 'kn' ? (i.name_kn ?? i.name_en) : i.name_en;
+          return `${name} — ${scaleIngredientLabel(i.qty_per_person, i.unit, dish.quantity)}`;
+        })
+        .join(', ');
+      return `${dish.name} (for ${dish.quantity}): ${line}`;
     })
-    .join(', ');
+    .join('. ');
+}
+
+export function composeMethodLine(dishes: DishLine[], translatedInstructions: Map<string, string>): string {
+  return dishes
+    .map((dish) => `For the ${dish.name}: ${translatedInstructions.get(dish.recipeId) ?? dish.instructions}`)
+    .join('\n\n');
 }

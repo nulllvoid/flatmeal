@@ -32,14 +32,14 @@
 - OTA-fix annoyances within 48h via EAS Update — responsiveness drives pilot goodwill.
 
 ## Metrics dashboard (simple SQL, run weekly)
-- Vote participation: votes ÷ (active members × polls), per flat per week — target ≥ 60% after week 1
+- Cart participation: distinct members who added/edited a cart line ÷ (active members × polls), per flat per week — target ≥ 60% after week 1
 - Grocery usage: polls where checklist opened + shared/copied ÷ dispatched polls — target ≥ 50%
 - Dispatch health: delivered ÷ attempted ≥ 95%; failures triaged
 - Cook comprehension (survey): ≥ 80% "understood without follow-up"
 - Retention: flats with ≥ 4 polls in week 4 ≥ 5 → expand cohort; else run 5 exit interviews before writing more code
 
 ## Decision gates after pilot (in priority order, evidence-gated)
-1. Participation weak but dispatch loved → lean harder into "cook comms" as the wedge (maybe voting becomes optional)
+1. Participation weak but dispatch loved → lean harder into "cook comms" as the wedge (maybe cart-building becomes lighter-touch, e.g. auto-add the top suggestion)
 2. Grocery list heavily used → invest in Q-comm partnerships / smarter lists
 3. Meal repetition complaints → grow dataset + start simple preference weighting (meal_feedback data now exists)
 4. Only after all above: expense ledger, breakfast/lunch, two-way cook bot, digital pantry

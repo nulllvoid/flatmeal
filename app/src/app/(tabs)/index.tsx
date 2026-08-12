@@ -537,7 +537,7 @@ function SearchModal({
 
           {!searching && query.trim().length >= 2 && results.length === 0 && (
             <ThemedText type="small" themeColor="textSecondary">
-              Nothing found — or it&apos;s not something the flat can all eat.
+              Nothing found — or it&apos;s not something the group can all eat.
             </ThemedText>
           )}
 

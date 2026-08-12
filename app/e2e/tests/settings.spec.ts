@@ -97,7 +97,7 @@ test.describe('Settings', () => {
 
   test('leave-flat control is present and wired (not a dead placeholder)', async ({ rahulPage }) => {
     await rahulPage.getByRole('tab', { name: 'Settings' }).click();
-    await expect(rahulPage.getByText('Leave flat', { exact: true })).toBeVisible();
+    await expect(rahulPage.getByText('Leave group', { exact: true })).toBeVisible();
     // Not clicked — leaving the flat would remove rahul from every other
     // spec's fixture data. Presence + no console error on render is the
     // assertion; the actual delete path is exercised at the DB layer by

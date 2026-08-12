@@ -31,20 +31,20 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <ActiveGroupProvider>
         <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="grocery-list"
-          options={{ headerShown: true, title: "Grocery list", presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="cook-message-preview"
-          options={{ headerShown: true, title: 'Cook message', presentation: 'modal' }}
-        />
-        <Stack.Screen
-          name="who-is-eating"
-          options={{ headerShown: true, title: "Who's eating", presentation: 'modal' }}
-        />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="grocery-list"
+            options={{ headerShown: true, title: "Grocery list", presentation: 'card' }}
+          />
+          <Stack.Screen
+            name="cook-message-preview"
+            options={{ headerShown: true, title: 'Cook message', presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="who-is-eating"
+            options={{ headerShown: true, title: "Who's eating", presentation: 'modal' }}
+          />
         </Stack>
       </ActiveGroupProvider>
     </ThemeProvider>

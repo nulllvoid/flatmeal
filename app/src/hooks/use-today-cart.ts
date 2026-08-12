@@ -52,10 +52,10 @@ function toActivityEntry(row: ActivityLogRow): ActivityEntry | null {
   }
 }
 
-// Today's shared cart for the current user's flat, realtime-subscribed to
-// cart_items so edits appear live across flatmates (this is a shared,
-// live-edited cart — not per-user votes; any member can edit any line). One
-// flat per user in v1 (see use-my-flat.ts).
+// Today's shared cart for one group, realtime-subscribed to cart_items so
+// edits appear live across members (this is a shared, live-edited cart —
+// not per-user votes; any member can edit any line). Callers pass the
+// active group's id (see contexts/active-group.tsx).
 export function useTodayCart(flatId: string | null | undefined, userId: string | undefined) {
   const [cart, setCart] = useState<TodayCartView | null | undefined>(undefined); // undefined = loading
   const [headcount, setHeadcount] = useState(0);

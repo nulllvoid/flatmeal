@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Switch } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Switch, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,6 +9,7 @@ import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useProfile } from '@/hooks/use-profile';
 import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
+import type { Tables, TablesUpdate } from '@/types/database';
 import type { Allergen, DietType } from '@/types/domain';
 
 const DIET_TYPES: { value: DietType; label: string }[] = [
@@ -17,32 +19,56 @@ const DIET_TYPES: { value: DietType; label: string }[] = [
 ];
 const ALLERGY_OPTIONS: Allergen[] = ['peanut', 'dairy', 'gluten', 'shellfish', 'soy'];
 
-// Onboarding step 1 of 3 (mockup: "what will you not eat?"). Writes the same
-// profiles columns Settings' dietary section already edits — this just
-// front-loads the prompt so a fresh member's diet filters suggestions from
-// day one instead of defaulting to 'veg' silently.
-export default function OnboardingDietScreen() {
-  const router = useRouter();
+// Onboarding "about you": display name + dietary profile, before any
+// household setup exists (design doc: user onboarding is separate from
+// create/join). Writes the same profiles columns Settings edits.
+export default function OnboardingProfileScreen() {
   const session = useSession();
   const { profile, updateProfile } = useProfile(session?.user.id);
+
+  return (
+    <ProfileForm
+      key={profile?.id ?? 'loading'}
+      profile={profile ?? null}
+      updateProfile={updateProfile}
+    />
+  );
+}
+
+// Mounted with key={profile.id} so the name field initializes from the
+// loaded profile once (useState initializer), same pattern as Settings'
+// CookSection.
+function ProfileForm({
+  profile,
+  updateProfile,
+}: {
+  profile: Tables<'profiles'> | null;
+  updateProfile: (patch: TablesUpdate<'profiles'>) => Promise<{ error: unknown } | undefined>;
+}) {
+  const router = useRouter();
   const theme = useTheme();
+  const [name, setName] = useState(profile?.display_name ?? '');
 
   function toggleAllergy(allergy: Allergen) {
     if (!profile) return;
     const has = profile.allergies.includes(allergy);
     const next = has ? profile.allergies.filter((a) => a !== allergy) : [...profile.allergies, allergy];
-    updateProfile({ allergies: next });
+    void updateProfile({ allergies: next });
   }
 
-  function next() {
-    router.push('/onboarding/limits');
+  async function next() {
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== profile?.display_name) {
+      await updateProfile({ display_name: trimmed });
+    }
+    router.push('/onboarding/choose');
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ThemedView style={styles.container}>
         <ThemedText type="small" themeColor="textSecondary" style={styles.kicker}>
-          Step 1 of 3
+          About you
         </ThemedText>
         <ThemedText type="title" style={styles.heading}>
           what will you not eat?
@@ -51,13 +77,21 @@ export default function OnboardingDietScreen() {
           This filters whatever lands in the cart, so be honest, not dramatic.
         </ThemedText>
 
+        <TextInput
+          placeholder="Your name"
+          placeholderTextColor={theme.textSecondary}
+          value={name}
+          onChangeText={setName}
+          style={[styles.input, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.backgroundElement }]}
+        />
+
         <ThemedView style={styles.segRow}>
           {DIET_TYPES.map(({ value, label }) => {
             const selected = profile?.diet_type === value;
             return (
               <Pressable
                 key={value}
-                onPress={() => updateProfile({ diet_type: value })}
+                onPress={() => void updateProfile({ diet_type: value })}
                 style={[
                   styles.segOption,
                   { borderColor: theme.divider },
@@ -102,7 +136,7 @@ export default function OnboardingDietScreen() {
           })}
         </ThemedView>
 
-        <Pressable style={[styles.primaryButton, { backgroundColor: theme.accent }]} onPress={next}>
+        <Pressable style={[styles.primaryButton, { backgroundColor: theme.accent }]} onPress={() => void next()}>
           <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
             Next
           </ThemedText>
@@ -126,6 +160,14 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 34,
     lineHeight: 38,
+  },
+  input: {
+    borderWidth: 1.5,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
+    fontSize: 16,
+    fontFamily: Fonts.body,
   },
   segRow: {
     flexDirection: 'row',

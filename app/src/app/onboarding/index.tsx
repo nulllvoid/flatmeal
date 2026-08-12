@@ -10,10 +10,10 @@ import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 
-// S0 step 1, email magic-link variant (docs/02-prd.md §F1 "or magic link
-// fallback"). Phone OTP is blocked on India DLT/SMS-provider setup — see
-// onboarding-phone.tsx for the phone flow, kept for when that's unblocked.
-// Step 2 (create/join flat) lives in onboarding/create-flat.tsx.
+// Onboarding step 1, email magic-link variant (docs/02-prd.md §F1 "or magic
+// link fallback"). Phone OTP is blocked on India DLT/SMS-provider setup.
+// Continues into onboarding/profile.tsx (about you), then
+// onboarding/choose.tsx (create or join a group).
 export default function OnboardingEmailScreen() {
   const router = useRouter();
   const session = useSession();
@@ -34,7 +34,7 @@ export default function OnboardingEmailScreen() {
         await supabase.from('profiles').insert({ id: userId, display_name: emailAddr || 'New member' });
       }
 
-      router.replace('/onboarding/create-flat');
+      router.replace('/onboarding/profile');
     },
     [router]
   );
@@ -71,7 +71,7 @@ export default function OnboardingEmailScreen() {
       <ThemedView style={styles.container}>
         <ThemedText type="title">FlatMeal</ThemedText>
         <ThemedText type="default" themeColor="textSecondary">
-          Vote in 5 seconds. Your cook gets clear instructions, automatically.
+          Build the next meal in 5 seconds. Your cook gets clear instructions, automatically.
         </ThemedText>
 
         {!linkSent ? (

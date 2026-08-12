@@ -1,3 +1,6 @@
+# Root-level tooling deps (see root package.json)
+node_modules/
+
 # Expo / React Native app (app/ has its own .gitignore too, but nested
 # .gitignore files only take effect if the directory is tracked from git's
 # perspective — keeping broad patterns here as a safety net)

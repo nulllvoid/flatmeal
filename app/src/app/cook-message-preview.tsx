@@ -5,13 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useCookDispatch } from '@/hooks/use-cook-dispatch';
-import { useMyFlat } from '@/hooks/use-my-flat';
-import { useSession } from '@/hooks/use-session';
+import { mealNoun } from '@/lib/meal-copy';
 
 export default function CookMessagePreviewScreen() {
-  const session = useSession();
-  const flatId = useMyFlat(session);
+  const { activeGroup } = useActiveGroup();
+  const flatId = activeGroup?.id;
+  const meal = activeGroup?.meal ?? 'dinner';
   const { dispatch } = useCookDispatch(flatId);
   const [showEnglish, setShowEnglish] = useState(false);
 
@@ -25,7 +26,7 @@ export default function CookMessagePreviewScreen() {
         <ThemedView style={styles.container}>
           <ThemedText type="subtitle">No cook message yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            This shows up once tonight&apos;s poll has closed and a cook is set in Settings.
+            This shows up once the {mealNoun(meal)} cart locks and a cook is set in Settings.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>

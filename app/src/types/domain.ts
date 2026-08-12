@@ -6,6 +6,10 @@
 // `supabase gen types`, so the generated Database type widens these columns
 // to plain `string` — these are hand-kept in sync with the schema instead.
 
+// The meal a group covers. UI-only for now — stored in the groups stub
+// (src/lib/groups-stub.ts) until a flats.meal_type column exists.
+export type MealType = 'breakfast' | 'lunch' | 'dinner';
+
 export type DietType = 'veg' | 'egg' | 'nonveg';
 export type Allergen = 'peanut' | 'dairy' | 'gluten' | 'shellfish' | 'soy';
 export type PollStatus = 'open' | 'closed' | 'cancelled' | 'dispatched';

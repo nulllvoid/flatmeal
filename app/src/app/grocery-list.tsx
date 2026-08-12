@@ -5,10 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useGroceryList } from '@/hooks/use-grocery-list';
-import { useMyFlat } from '@/hooks/use-my-flat';
-import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
+import { mealNoun, mealShareHeading } from '@/lib/meal-copy';
 import type { GroceryLineView } from '@/types/domain';
 
 const CATEGORY_ORDER = ['vegetable', 'dairy', 'protein', 'other'] as const;
@@ -20,8 +20,9 @@ const CATEGORY_LABEL: Record<(typeof CATEGORY_ORDER)[number], string> = {
 };
 
 export default function GroceryListScreen() {
-  const session = useSession();
-  const flatId = useMyFlat(session);
+  const { activeGroup } = useActiveGroup();
+  const flatId = activeGroup?.id;
+  const meal = activeGroup?.meal ?? 'dinner';
   const { data, toggleChecked } = useGroceryList(flatId);
   const theme = useTheme();
 
@@ -36,8 +37,8 @@ export default function GroceryListScreen() {
       .map((l) => `- ${l.nameEn} — ${l.quantityLabel} (for ${l.dishName})`)
       .join('\n');
     const stapleNames = staples.map((s) => s.nameEn).join(', ');
-    return `🛒 Tonight: ${data.dishSummary}\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
-  }, [data, buyList, staples]);
+    return `${mealShareHeading(meal)} ${data.dishSummary}\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
+  }, [data, buyList, staples, meal]);
 
   async function handleShare() {
     await Share.share({ message: shareText });
@@ -58,7 +59,7 @@ export default function GroceryListScreen() {
         <ThemedView style={styles.container}>
           <ThemedText type="subtitle">No grocery list yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            This shows up once something&apos;s in tonight&apos;s cart.
+            This shows up once something&apos;s in the {mealNoun(meal)} cart.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>

@@ -5,6 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { ActiveGroupProvider } from '@/contexts/active-group';
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -27,7 +29,8 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <ActiveGroupProvider>
+        <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -42,7 +45,8 @@ export default function RootLayout() {
           name="who-is-eating"
           options={{ headerShown: true, title: "Who's eating", presentation: 'modal' }}
         />
-      </Stack>
+        </Stack>
+      </ActiveGroupProvider>
     </ThemeProvider>
   );
 }

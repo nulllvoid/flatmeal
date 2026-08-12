@@ -6,21 +6,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useTheme } from '@/hooks/use-theme';
+import { setMealType } from '@/lib/groups-stub';
+import { MEAL_ORDER, mealLabel } from '@/lib/meal-copy';
 import { supabase } from '@/lib/supabase';
+import type { MealType } from '@/types/domain';
 
-// S0 step 2 (create branch only): "one authenticated user ends up in a flat
-// with a membership row." Continues into onboarding/diet.tsx and
-// onboarding/cook.tsx for the dietary profile and cook prompts.
-// TODO: onboarding/join-flat.tsx (deep-link + invite_code lookup) is not
-// built yet — creating is the only path in right now.
-export default function CreateFlatScreen() {
+// Creates a group: one meal, one cook, its own cart (design doc). A group is
+// a flats row under the hood — the meal lives in the groups stub until a
+// flats.meal_type column exists. Also reached from Settings' "Add group".
+export default function CreateGroupScreen() {
   const router = useRouter();
+  const { reloadGroups, setActiveGroupId } = useActiveGroup();
+  const theme = useTheme();
+
   const [name, setName] = useState('');
+  const [meal, setMeal] = useState<MealType>('dinner');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function createFlat() {
+  async function createGroup() {
     setError(null);
     setLoading(true);
 
@@ -40,7 +46,7 @@ export default function CreateFlatScreen() {
 
     if (flatError || !flat) {
       setLoading(false);
-      setError(flatError?.message ?? 'Could not create flat');
+      setError(flatError?.message ?? 'Could not create group');
       return;
     }
 
@@ -48,39 +54,69 @@ export default function CreateFlatScreen() {
       .from('flat_members')
       .insert({ flat_id: flat.id, user_id: userId, role: 'admin' });
 
-    setLoading(false);
     if (memberError) {
+      setLoading(false);
       setError(memberError.message);
       return;
     }
 
-    router.replace('/onboarding/diet');
+    await setMealType(flat.id, meal);
+    await reloadGroups();
+    setActiveGroupId(flat.id);
+    setLoading(false);
+    router.push({ pathname: '/onboarding/cook', params: { groupId: flat.id } });
   }
-
-  const theme = useTheme();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ThemedView style={styles.container}>
-        <ThemedText type="subtitle">Create your flat</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          You can invite flatmates and set up your cook afterwards, from Settings.
+        <ThemedText type="small" themeColor="textSecondary" style={styles.kicker}>
+          Your household
+        </ThemedText>
+        <ThemedText type="title" style={styles.heading}>
+          create your group
+        </ThemedText>
+        <ThemedText type="default" themeColor="textSecondary">
+          One group = one meal, one cook. Add more groups later from Settings.
         </ThemedText>
 
         <TextInput
-          placeholder="Flat name"
+          placeholder={'Group name (e.g. "2BHK dinner")'}
           placeholderTextColor={theme.textSecondary}
           value={name}
           onChangeText={setName}
           style={[styles.input, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.backgroundElement }]}
         />
 
+        <ThemedText type="small" themeColor="textSecondary" style={styles.kicker}>
+          Which meal is this group for?
+        </ThemedText>
+        <ThemedView style={styles.segRow}>
+          {MEAL_ORDER.map((option) => {
+            const selected = meal === option;
+            return (
+              <Pressable
+                key={option}
+                onPress={() => setMeal(option)}
+                style={[
+                  styles.segOption,
+                  { borderColor: theme.divider },
+                  selected && { backgroundColor: theme.accent, borderColor: theme.accent },
+                ]}>
+                <ThemedText type="smallBold" style={selected ? { color: theme.background } : undefined}>
+                  {mealLabel(option)}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </ThemedView>
+
         <Pressable
           style={[styles.primaryButton, { backgroundColor: theme.accent }, (loading || !name) && styles.disabled]}
-          onPress={createFlat}
+          onPress={() => void createGroup()}
           disabled={loading || !name}>
           <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
-            {loading ? 'Creating…' : 'Create flat'}
+            {loading ? 'Creating…' : 'Create group'}
           </ThemedText>
         </Pressable>
 
@@ -102,6 +138,14 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.three,
   },
+  kicker: {
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  heading: {
+    fontSize: 34,
+    lineHeight: 38,
+  },
   input: {
     borderWidth: 1.5,
     borderRadius: Radius.pill,
@@ -109,6 +153,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     fontSize: 16,
     fontFamily: Fonts.body,
+  },
+  segRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  segOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.three,
+    borderRadius: Radius.pill,
+    borderWidth: 1.5,
   },
   primaryButton: {
     paddingVertical: Spacing.three,

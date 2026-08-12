@@ -1,17 +1,17 @@
 import { Redirect } from 'expo-router';
 
-import { useMyFlat } from '@/hooks/use-my-flat';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useSession } from '@/hooks/use-session';
 
 export default function RootIndex() {
   const session = useSession();
-  const flatId = useMyFlat(session);
+  const { groups } = useActiveGroup();
 
-  if (session === undefined || (session && flatId === undefined)) {
+  if (session === undefined || (session && groups === undefined)) {
     return null; // loading — TODO: splash/spinner
   }
 
-  if (!session || !flatId) {
+  if (!session || !groups || groups.length === 0) {
     return <Redirect href="/onboarding" />;
   }
 

@@ -26,7 +26,11 @@ test.describe('Poll lifecycle: locking the cart', () => {
     // did — see e2e/README.md "Known gap: stale poll state without reload").
     await ownerPage.reload();
     await ownerPage.waitForTimeout(3000);
-    await expect(ownerPage.getByText("Tonight's menu", { exact: false })).toBeVisible({ timeout: 15000 });
+    // "Dinner tonight" (lib/meal-copy.ts's mealTitle) — TEST_FLAT_ID's group
+    // meal defaults to 'dinner' (groups-stub.ts has no per-flat DB column
+    // yet, so getMealType falls back to 'dinner' for any group with no
+    // AsyncStorage entry, and this suite never sets one for TEST_FLAT_ID).
+    await expect(ownerPage.getByText('Dinner tonight', { exact: false })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Palak Paneer', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Dal Tadka', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Grocery list', { exact: true })).toBeVisible();
@@ -55,7 +59,11 @@ test.describe('Poll lifecycle: locking the cart', () => {
     await ownerPage.waitForTimeout(3000);
     await expect(ownerPage.getByText('Palak Paneer', { exact: true })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Remove', { exact: true })).toHaveCount(0);
-    await expect(ownerPage.getByText('+', { exact: true })).toHaveCount(0);
+    // Scoped to :visible — Expo Router can leave zero-size, detached '+'
+    // nodes in the DOM across a screen transition (confirmed via manual DOM
+    // probing: same nodes, 0x0 bounding rect), so an unscoped getByText
+    // false-fails here even when no stepper is actually rendered.
+    await expect(ownerPage.getByText('+', { exact: true }).locator('visible=true')).toHaveCount(0);
 
     const quantity = dbQuery(
       `select ci.quantity from cart_items ci join daily_polls dp on dp.id = ci.poll_id
@@ -80,7 +88,11 @@ test.describe('Poll lifecycle: locking the cart', () => {
     // Regression guard: the menu used to disappear once status flipped from
     // 'closed' to 'dispatched', hiding the Grocery list / Preview cook
     // message links exactly when they matter most.
-    await expect(ownerPage.getByText("Tonight's menu", { exact: false })).toBeVisible({ timeout: 15000 });
+    // "Dinner tonight" (lib/meal-copy.ts's mealTitle) — TEST_FLAT_ID's group
+    // meal defaults to 'dinner' (groups-stub.ts has no per-flat DB column
+    // yet, so getMealType falls back to 'dinner' for any group with no
+    // AsyncStorage entry, and this suite never sets one for TEST_FLAT_ID).
+    await expect(ownerPage.getByText('Dinner tonight', { exact: false })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Grocery list', { exact: true })).toBeVisible();
     await expect(ownerPage.getByText('Preview cook message', { exact: true })).toBeVisible();
   });

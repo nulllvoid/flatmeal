@@ -5,22 +5,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useAttendance } from '@/hooks/use-attendance';
-import { useMyFlat } from '@/hooks/use-my-flat';
 import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
 import { useTodayCart } from '@/hooks/use-today-cart';
 
-// Mockup screen 07: "who are you picking for?" — lets any flatmate mark any
-// OTHER flatmate in/out for the day (day_attendance RLS was widened from
-// self-only to any flat member specifically for this —
+// Mockup screen 07: "who are you picking for?" — lets any member mark any
+// OTHER group member in/out for the day (day_attendance RLS was widened from
+// self-only to any group member specifically for this —
 // supabase/migrations/20260109000001_sides_limits_activity.sql). Distinct
 // from the Today tab's own "I'm out today" self-toggle, which stays as the
 // quick self-service path; this is the fuller per-person view.
 export default function WhoIsEatingScreen() {
   const router = useRouter();
   const session = useSession();
-  const flatId = useMyFlat(session);
+  const { activeGroup } = useActiveGroup();
+  const flatId = activeGroup?.id;
   const { members, setMemberOut } = useAttendance(flatId);
   const { cart } = useTodayCart(flatId, session?.user.id);
   const theme = useTheme();
@@ -33,7 +34,7 @@ export default function WhoIsEatingScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.container}>
-          <ThemedText type="subtitle">No flat yet</ThemedText>
+          <ThemedText type="subtitle">No group yet</ThemedText>
         </ThemedView>
       </SafeAreaView>
     );
@@ -103,7 +104,7 @@ export default function WhoIsEatingScreen() {
 
         <Pressable style={[styles.primaryButton, { backgroundColor: theme.accent }]} onPress={() => router.back()}>
           <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
-            Pick the main course
+            Back to the cart
           </ThemedText>
         </Pressable>
       </ScrollView>

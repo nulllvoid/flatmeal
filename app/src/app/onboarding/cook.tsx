@@ -1,5 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,9 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useFlatSettings } from '@/hooks/use-flat-settings';
-import { useMyFlat } from '@/hooks/use-my-flat';
-import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
 
 const COOK_LANGUAGES = [
@@ -18,14 +17,16 @@ const COOK_LANGUAGES = [
   { value: 'en', label: 'English' },
 ] as const;
 
-// Onboarding step 3 of 3 (mockup: "who's actually doing the cooking?" + the
-// invite link). Writes the same `cooks` row Settings' Cook section already
-// edits — front-loaded here so a fresh flat has a cook set before the first
-// dispatch, rather than leaving it to be discovered later in Settings.
+// Final create-group step (mockup: "who's actually doing the cooking?" + the
+// invite code). Writes the same `cooks` row Settings' Cook section already
+// edits — front-loaded here so a fresh group has a cook set before the first
+// dispatch. The group id arrives as a route param from create-group.tsx
+// (falling back to the active group when reached another way).
 export default function OnboardingCookScreen() {
   const router = useRouter();
-  const session = useSession();
-  const flatId = useMyFlat(session);
+  const { groupId } = useLocalSearchParams<{ groupId?: string }>();
+  const { activeGroup } = useActiveGroup();
+  const flatId = groupId ?? activeGroup?.id;
   const { data: flatData, upsertCook } = useFlatSettings(flatId);
   const theme = useTheme();
 
@@ -34,11 +35,13 @@ export default function OnboardingCookScreen() {
   const [cookLanguage, setCookLanguage] = useState<'hi' | 'kn' | 'en'>('hi');
   const [copied, setCopied] = useState(false);
 
-  const inviteUrl = flatData ? `flatmeal.app/j/${flatData.flat.invite_code}` : '';
+  // Share the raw code, not a flatmeal.app/j/ URL — the deep link isn't live
+  // yet and a dead link in the first minute costs trust.
+  const inviteCode = flatData?.flat.invite_code ?? '';
 
   async function copyInvite() {
-    if (!inviteUrl) return;
-    await Clipboard.setStringAsync(inviteUrl);
+    if (!inviteCode) return;
+    await Clipboard.setStringAsync(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -54,7 +57,7 @@ export default function OnboardingCookScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ThemedView style={styles.container}>
         <ThemedText type="small" themeColor="textSecondary" style={styles.kicker}>
-          Step 3 of 3
+          Your household
         </ThemedText>
         <ThemedText type="title" style={styles.heading}>
           who&apos;s actually doing the cooking?
@@ -102,9 +105,9 @@ export default function OnboardingCookScreen() {
           <Pressable
             onPress={copyInvite}
             style={[styles.inviteBox, { borderColor: theme.divider, backgroundColor: theme.backgroundElement }]}>
-            <ThemedText type="smallBold">Drag the other flatmates in</ThemedText>
+            <ThemedText type="smallBold">Drag the rest of the group in</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {copied ? 'Copied!' : `${inviteUrl} — tap to copy`}
+              {copied ? 'Copied!' : `Invite code: ${inviteCode} — tap to copy`}
             </ThemedText>
           </Pressable>
         )}

@@ -6,12 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
-import { useMyFlat } from '@/hooks/use-my-flat';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useSession } from '@/hooks/use-session';
 import { useStreak } from '@/hooks/use-streak';
 import { useTheme } from '@/hooks/use-theme';
 import { useTodayCart } from '@/hooks/use-today-cart';
-import type { ActivityEntry, CartLineView, RecipeKind, SuggestionView } from '@/types/domain';
+import { mealLabel, mealMoment, mealNoun, mealTitle } from '@/lib/meal-copy';
+import type { ActivityEntry, CartLineView, MealType, RecipeKind, SuggestionView } from '@/types/domain';
 
 const TABS: RecipeKind[] = ['main', 'accompaniment', 'side'];
 const TAB_LABEL: Record<RecipeKind, string> = { main: 'Mains', accompaniment: 'With it', side: 'Sides' };
@@ -33,7 +34,9 @@ const LOCKED_CARD = {
 export default function TodayScreen() {
   const router = useRouter();
   const session = useSession();
-  const flatId = useMyFlat(session);
+  const { groups, activeGroup, setActiveGroupId } = useActiveGroup();
+  const flatId = activeGroup?.id;
+  const meal = activeGroup?.meal ?? 'dinner';
   const {
     cart,
     headcount,
@@ -61,9 +64,10 @@ export default function TodayScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.container}>
-          <ThemedText type="subtitle">No poll yet today</ThemedText>
+          <MealChips groups={groups} activeGroupId={activeGroup?.id} onSelect={setActiveGroupId} />
+          <ThemedText type="subtitle">No {mealNoun(meal)} suggestions yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Suggestions land at your flat&apos;s poll-open time.
+            Suggestions land at your group&apos;s poll-open time.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>
@@ -102,12 +106,14 @@ export default function TodayScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
+        <MealChips groups={groups} activeGroupId={activeGroup?.id} onSelect={setActiveGroupId} />
+
         <ThemedView style={styles.headerRow}>
           <ThemedView>
-            <ThemedText type="subtitle">Dinner tonight</ThemedText>
+            <ThemedText type="subtitle">{mealTitle(meal)}</ThemedText>
             <Pressable onPress={() => router.push('/who-is-eating')}>
               <ThemedText type="small" themeColor="textSecondary" style={styles.headcountLink}>
-                {headcount} eating tonight
+                {headcount} eating {mealMoment(meal)}
               </ThemedText>
             </Pressable>
           </ThemedView>
@@ -119,7 +125,12 @@ export default function TodayScreen() {
         </ThemedView>
 
         {cart.status === 'closed' && cart.cartLines.length === 0 && (
-          <EmptyCartAtLock flatId={flatId} takeFallback={takeFallback} getFallbackSuggestions={getFallbackSuggestions} />
+          <EmptyCartAtLock
+            flatId={flatId}
+            meal={meal}
+            takeFallback={takeFallback}
+            getFallbackSuggestions={getFallbackSuggestions}
+          />
         )}
 
         {(cart.status === 'closed' || cart.status === 'dispatched') && cart.cartLines.length > 0 && (
@@ -341,10 +352,12 @@ function ActivityFeed({ entries, accentColor }: { entries: ActivityEntry[]; acce
 
 function EmptyCartAtLock({
   flatId,
+  meal,
   takeFallback,
   getFallbackSuggestions,
 }: {
   flatId: string | null | undefined;
+  meal: MealType;
   takeFallback: (recipeId: string) => Promise<{ error: unknown } | undefined>;
   getFallbackSuggestions: () => Promise<{ main: SuggestionView | null; accompaniment: SuggestionView | null }>;
 }) {
@@ -377,7 +390,7 @@ function EmptyCartAtLock({
       </ThemedView>
       <ThemedText type="subtitle">nobody picked anything</ThemedText>
       <ThemedText type="default" themeColor="textSecondary">
-        The cart locked with nothing in it. Take a safe fallback for tonight, or skip dinner altogether.
+        The cart locked with nothing in it. Take a safe fallback, or skip {mealNoun(meal)} altogether.
       </ThemedText>
 
       {fallback === undefined && (
@@ -408,7 +421,9 @@ function EmptyCartAtLock({
         <Pressable
           style={[styles.actionButtonOutline, { borderColor: theme.divider }]}
           onPress={() => setDismissed(true)}>
-          <ThemedText type="smallBold">No dinner tonight</ThemedText>
+          <ThemedText type="smallBold">
+            No {mealNoun(meal)} {mealMoment(meal)}
+          </ThemedText>
         </Pressable>
         {hasFallback && (
           <Pressable style={[styles.actionButton, { backgroundColor: theme.accent }]} onPress={confirmFallback}>
@@ -418,6 +433,42 @@ function EmptyCartAtLock({
           </Pressable>
         )}
       </ThemedView>
+    </ThemedView>
+  );
+}
+
+// One chip per group the user belongs to, labeled by its meal — switches the
+// whole screen's scope (design doc: "Meal switcher chips"). Hidden entirely
+// for single-group users so their screen looks unchanged.
+function MealChips({
+  groups,
+  activeGroupId,
+  onSelect,
+}: {
+  groups: { id: string; meal: MealType }[] | undefined;
+  activeGroupId: string | undefined;
+  onSelect: (id: string) => void;
+}) {
+  const theme = useTheme();
+  if (!groups || groups.length <= 1) return null;
+
+  return (
+    <ThemedView style={[styles.tabRow, { backgroundColor: theme.backgroundElement }]}>
+      {groups.map((group) => {
+        const selected = group.id === activeGroupId;
+        return (
+          <Pressable
+            key={group.id}
+            onPress={() => onSelect(group.id)}
+            style={[styles.tabOption, selected && { backgroundColor: theme.accentSoft }]}>
+            <ThemedText
+              type="smallBold"
+              style={selected ? { color: theme.accentText } : { color: theme.textSecondary }}>
+              {mealLabel(group.meal)}
+            </ThemedText>
+          </Pressable>
+        );
+      })}
     </ThemedView>
   );
 }
@@ -486,7 +537,7 @@ function SearchModal({
 
           {!searching && query.trim().length >= 2 && results.length === 0 && (
             <ThemedText type="small" themeColor="textSecondary">
-              Nothing found — or it&apos;s not something the flat can all eat.
+              Nothing found — or it&apos;s not something the group can all eat.
             </ThemedText>
           )}
 

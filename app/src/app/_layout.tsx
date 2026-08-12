@@ -5,6 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { ActiveGroupProvider } from '@/contexts/active-group';
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -27,22 +29,24 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="grocery-list"
-          options={{ headerShown: true, title: "Grocery list", presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="cook-message-preview"
-          options={{ headerShown: true, title: 'Cook message', presentation: 'modal' }}
-        />
-        <Stack.Screen
-          name="who-is-eating"
-          options={{ headerShown: true, title: "Who's eating", presentation: 'modal' }}
-        />
-      </Stack>
+      <ActiveGroupProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="grocery-list"
+            options={{ headerShown: true, title: "Grocery list", presentation: 'card' }}
+          />
+          <Stack.Screen
+            name="cook-message-preview"
+            options={{ headerShown: true, title: 'Cook message', presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="who-is-eating"
+            options={{ headerShown: true, title: "Who's eating", presentation: 'modal' }}
+          />
+        </Stack>
+      </ActiveGroupProvider>
     </ThemeProvider>
   );
 }

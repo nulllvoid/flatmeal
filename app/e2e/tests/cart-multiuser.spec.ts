@@ -63,7 +63,12 @@ test.describe('Multi-user shared cart and realtime', () => {
     ) as { quantity: number }[];
     expect(before[0].quantity).toBe(1);
 
-    await ownerPage.getByText('+', { exact: true }).click();
+    // Scoped to :visible — Expo Router can leave zero-size, detached '+'
+    // nodes in the DOM across a screen transition (confirmed via manual DOM
+    // probing: same nodes, 0x0 bounding rect), which makes an unscoped
+    // getByText('+').click() a strict-mode violation even though only one
+    // stepper button is actually rendered/visible.
+    await ownerPage.getByText('+', { exact: true }).locator('visible=true').click();
     await ownerPage.waitForTimeout(1000);
 
     const after = dbQuery(

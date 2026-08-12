@@ -41,7 +41,7 @@ export function useFlatSettings(flatId: string | null | undefined) {
       flat: flatRow,
       members: (memberRows ?? []).map((m) => ({
         userId: m.user_id,
-        displayName: m.profiles?.display_name ?? 'Flatmate',
+        displayName: m.profiles?.display_name ?? 'Member',
         role: m.role,
       })),
       cook: cookRow ?? null,

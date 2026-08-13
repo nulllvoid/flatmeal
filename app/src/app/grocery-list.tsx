@@ -8,7 +8,7 @@ import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useActiveGroup } from '@/contexts/active-group';
 import { useGroceryList } from '@/hooks/use-grocery-list';
 import { useTheme } from '@/hooks/use-theme';
-import { mealNoun, mealShareHeading } from '@/lib/meal-copy';
+import { mealNounList, mealShareHeadingList } from '@/lib/meal-copy';
 import type { GroceryLineView } from '@/types/domain';
 
 const CATEGORY_ORDER = ['vegetable', 'dairy', 'protein', 'other'] as const;
@@ -22,7 +22,7 @@ const CATEGORY_LABEL: Record<(typeof CATEGORY_ORDER)[number], string> = {
 export default function GroceryListScreen() {
   const { activeGroup } = useActiveGroup();
   const flatId = activeGroup?.id;
-  const meal = activeGroup?.meal ?? 'dinner';
+  const meals = activeGroup?.meals ?? ['dinner'];
   const { data, toggleChecked } = useGroceryList(flatId);
   const theme = useTheme();
 
@@ -30,6 +30,10 @@ export default function GroceryListScreen() {
   const staples = useMemo(() => data?.lines.filter((l) => l.isStaple) ?? [], [data]);
   const uncheckedCount = buyList.filter((l) => !l.checked).length;
 
+  // meals is a fresh array on every render when activeGroup is undefined
+  // (the ?? ['dinner'] fallback) — depend on the joined string instead so
+  // this memo doesn't invalidate every render.
+  const mealsKey = meals.join(',');
   const shareText = useMemo(() => {
     if (!data) return '';
     const toBuy = buyList
@@ -37,8 +41,9 @@ export default function GroceryListScreen() {
       .map((l) => `- ${l.nameEn} — ${l.quantityLabel} (for ${l.dishName})`)
       .join('\n');
     const stapleNames = staples.map((s) => s.nameEn).join(', ');
-    return `${mealShareHeading(meal)} ${data.dishSummary}\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
-  }, [data, buyList, staples, meal]);
+    return `${mealShareHeadingList(meals)} ${data.dishSummary}\nTo buy:\n${toBuy}\nCheck at home: ${stapleNames}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mealsKey is meals' stable dependency proxy (see comment above); depending on meals directly defeats the memo.
+  }, [data, buyList, staples, mealsKey]);
 
   async function handleShare() {
     await Share.share({ message: shareText });
@@ -59,7 +64,7 @@ export default function GroceryListScreen() {
         <ThemedView style={styles.container}>
           <ThemedText type="subtitle">No grocery list yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            This shows up once something&apos;s in the {mealNoun(meal)} cart.
+            This shows up once something&apos;s in the {mealNounList(meals)} cart.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>

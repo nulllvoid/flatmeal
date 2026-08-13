@@ -8,23 +8,30 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useActiveGroup } from '@/contexts/active-group';
 import { useTheme } from '@/hooks/use-theme';
-import { setMealType } from '@/lib/groups-stub';
+import { setMealTypes } from '@/lib/groups-stub';
 import { MEAL_ORDER, mealLabel } from '@/lib/meal-copy';
 import { supabase } from '@/lib/supabase';
 import type { MealType } from '@/types/domain';
 
-// Creates a group: one meal, one cook, its own cart (design doc). A group is
-// a flats row under the hood — the meal lives in the groups stub until a
-// flats.meal_type column exists. Also reached from Settings' "Add group".
+// Creates a group: one cook, its own cart, covering one or more meals
+// (design doc). A group is a flats row under the hood — the meal(s) live in
+// the groups stub until a flats.meal_type column exists. Also reached from
+// Settings' "Add group".
 export default function CreateGroupScreen() {
   const router = useRouter();
   const { reloadGroups, setActiveGroupId } = useActiveGroup();
   const theme = useTheme();
 
   const [name, setName] = useState('');
-  const [meal, setMeal] = useState<MealType>('dinner');
+  const [meals, setMeals] = useState<MealType[]>(['dinner']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function toggleMeal(meal: MealType) {
+    setMeals((current) =>
+      current.includes(meal) ? current.filter((m) => m !== meal) : [...current, meal]
+    );
+  }
 
   async function createGroup() {
     setError(null);
@@ -60,7 +67,7 @@ export default function CreateGroupScreen() {
       return;
     }
 
-    await setMealType(flat.id, meal);
+    await setMealTypes(flat.id, meals);
     await reloadGroups();
     setActiveGroupId(flat.id);
     setLoading(false);
@@ -77,7 +84,8 @@ export default function CreateGroupScreen() {
           create your group
         </ThemedText>
         <ThemedText type="default" themeColor="textSecondary">
-          One group = one meal, one cook. Add more groups later from Settings.
+          One group, one cook, one cart per day — covering whichever meals you pick below. Add more
+          groups later from Settings.
         </ThemedText>
 
         <TextInput
@@ -89,15 +97,15 @@ export default function CreateGroupScreen() {
         />
 
         <ThemedText type="small" themeColor="textSecondary" style={styles.kicker}>
-          Which meal is this group for?
+          Which meals is this group for?
         </ThemedText>
         <ThemedView style={styles.segRow}>
           {MEAL_ORDER.map((option) => {
-            const selected = meal === option;
+            const selected = meals.includes(option);
             return (
               <Pressable
                 key={option}
-                onPress={() => setMeal(option)}
+                onPress={() => toggleMeal(option)}
                 style={[
                   styles.segOption,
                   { borderColor: theme.divider },
@@ -112,9 +120,13 @@ export default function CreateGroupScreen() {
         </ThemedView>
 
         <Pressable
-          style={[styles.primaryButton, { backgroundColor: theme.accent }, (loading || !name) && styles.disabled]}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: theme.accent },
+            (loading || !name || meals.length === 0) && styles.disabled,
+          ]}
           onPress={() => void createGroup()}
-          disabled={loading || !name}>
+          disabled={loading || !name || meals.length === 0}>
           <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
             {loading ? 'Creating…' : 'Create group'}
           </ThemedText>

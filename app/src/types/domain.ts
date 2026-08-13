@@ -6,8 +6,12 @@
 // `supabase gen types`, so the generated Database type widens these columns
 // to plain `string` — these are hand-kept in sync with the schema instead.
 
-// The meal a group covers. UI-only for now — stored in the groups stub
-// (src/lib/groups-stub.ts) until a flats.meal_type column exists.
+// A meal a group covers. UI-only for now — stored in the groups stub
+// (src/lib/groups-stub.ts) until a flats.meal_type column exists. A group
+// can cover more than one meal (see MealType[] usage) — this is purely a
+// display-copy concept: the backend pipeline (create_poll/close_poll/
+// dispatch_cook) has no meal dimension at all, exactly one cart/poll/
+// dispatch per group per day regardless of which meals it's labeled with.
 export type MealType = 'breakfast' | 'lunch' | 'dinner';
 
 export type DietType = 'veg' | 'egg' | 'nonveg';

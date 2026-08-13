@@ -7,12 +7,12 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useActiveGroup } from '@/contexts/active-group';
 import { useCookDispatch } from '@/hooks/use-cook-dispatch';
-import { mealNoun } from '@/lib/meal-copy';
+import { mealNounList } from '@/lib/meal-copy';
 
 export default function CookMessagePreviewScreen() {
   const { activeGroup } = useActiveGroup();
   const flatId = activeGroup?.id;
-  const meal = activeGroup?.meal ?? 'dinner';
+  const meals = activeGroup?.meals ?? ['dinner'];
   const { dispatch } = useCookDispatch(flatId);
   const [showEnglish, setShowEnglish] = useState(false);
 
@@ -26,7 +26,7 @@ export default function CookMessagePreviewScreen() {
         <ThemedView style={styles.container}>
           <ThemedText type="subtitle">No cook message yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            This shows up once the {mealNoun(meal)} cart locks and a cook is set in Settings.
+            This shows up once the {mealNounList(meals)} cart locks and a cook is set in Settings.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>

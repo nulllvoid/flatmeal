@@ -8,14 +8,35 @@ import type { MealType } from '@/types/domain';
 
 const mealKey = (groupId: string) => `flatmeal.group-meal.${groupId}`;
 
-// TODO(backend): replace with a real flats.meal_type column + migration.
-export async function getMealType(groupId: string): Promise<MealType> {
-  const stored = await AsyncStorage.getItem(mealKey(groupId));
-  return stored === 'breakfast' || stored === 'lunch' || stored === 'dinner' ? stored : 'dinner';
+function isMealType(value: unknown): value is MealType {
+  return value === 'breakfast' || value === 'lunch' || value === 'dinner';
 }
 
-export async function setMealType(groupId: string, meal: MealType): Promise<void> {
-  await AsyncStorage.setItem(mealKey(groupId), meal);
+// TODO(backend): replace with a real flats.meal_type column + migration.
+// Stored as a JSON array of MealType (a group can cover more than one meal —
+// this is display copy only, see types/domain.ts's MealType comment). Reads
+// also accept the pre-multi-select plain-string format written by earlier
+// builds, so existing installs don't lose their selection on upgrade.
+export async function getMealTypes(groupId: string): Promise<MealType[]> {
+  const stored = await AsyncStorage.getItem(mealKey(groupId));
+  if (!stored) return ['dinner'];
+
+  if (isMealType(stored)) return [stored]; // pre-multi-select format
+
+  try {
+    const parsed: unknown = JSON.parse(stored);
+    if (Array.isArray(parsed)) {
+      const meals = parsed.filter(isMealType);
+      if (meals.length > 0) return meals;
+    }
+  } catch {
+    // fall through to default below
+  }
+  return ['dinner'];
+}
+
+export async function setMealTypes(groupId: string, meals: MealType[]): Promise<void> {
+  await AsyncStorage.setItem(mealKey(groupId), JSON.stringify(meals));
 }
 
 // TODO(backend): real join needs a security-definer RPC or Edge Function —

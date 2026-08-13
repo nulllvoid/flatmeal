@@ -11,7 +11,7 @@ import { useSession } from '@/hooks/use-session';
 import { useStreak } from '@/hooks/use-streak';
 import { useTheme } from '@/hooks/use-theme';
 import { useTodayCart } from '@/hooks/use-today-cart';
-import { mealLabel, mealMoment, mealNoun, mealTitle } from '@/lib/meal-copy';
+import { mealLabelList, mealMomentList, mealNounList, mealTitleList } from '@/lib/meal-copy';
 import type { ActivityEntry, CartLineView, MealType, RecipeKind, SuggestionView } from '@/types/domain';
 
 const TABS: RecipeKind[] = ['main', 'accompaniment', 'side'];
@@ -36,7 +36,7 @@ export default function TodayScreen() {
   const session = useSession();
   const { groups, activeGroup, setActiveGroupId } = useActiveGroup();
   const flatId = activeGroup?.id;
-  const meal = activeGroup?.meal ?? 'dinner';
+  const meals = activeGroup?.meals ?? ['dinner'];
   const {
     cart,
     headcount,
@@ -65,7 +65,7 @@ export default function TodayScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.container}>
           <MealChips groups={groups} activeGroupId={activeGroup?.id} onSelect={setActiveGroupId} />
-          <ThemedText type="subtitle">No {mealNoun(meal)} suggestions yet</ThemedText>
+          <ThemedText type="subtitle">No {mealNounList(meals)} suggestions yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Suggestions land at your group&apos;s poll-open time.
           </ThemedText>
@@ -110,10 +110,10 @@ export default function TodayScreen() {
 
         <ThemedView style={styles.headerRow}>
           <ThemedView>
-            <ThemedText type="subtitle">{mealTitle(meal)}</ThemedText>
+            <ThemedText type="subtitle">{mealTitleList(meals)}</ThemedText>
             <Pressable onPress={() => router.push('/who-is-eating')}>
               <ThemedText type="small" themeColor="textSecondary" style={styles.headcountLink}>
-                {headcount} eating {mealMoment(meal)}
+                {headcount} eating {mealMomentList(meals)}
               </ThemedText>
             </Pressable>
           </ThemedView>
@@ -127,7 +127,7 @@ export default function TodayScreen() {
         {cart.status === 'closed' && cart.cartLines.length === 0 && (
           <EmptyCartAtLock
             flatId={flatId}
-            meal={meal}
+            meals={meals}
             takeFallback={takeFallback}
             getFallbackSuggestions={getFallbackSuggestions}
           />
@@ -352,12 +352,12 @@ function ActivityFeed({ entries, accentColor }: { entries: ActivityEntry[]; acce
 
 function EmptyCartAtLock({
   flatId,
-  meal,
+  meals,
   takeFallback,
   getFallbackSuggestions,
 }: {
   flatId: string | null | undefined;
-  meal: MealType;
+  meals: MealType[];
   takeFallback: (recipeId: string) => Promise<{ error: unknown } | undefined>;
   getFallbackSuggestions: () => Promise<{ main: SuggestionView | null; accompaniment: SuggestionView | null }>;
 }) {
@@ -390,7 +390,7 @@ function EmptyCartAtLock({
       </ThemedView>
       <ThemedText type="subtitle">nobody picked anything</ThemedText>
       <ThemedText type="default" themeColor="textSecondary">
-        The cart locked with nothing in it. Take a safe fallback, or skip {mealNoun(meal)} altogether.
+        The cart locked with nothing in it. Take a safe fallback, or skip {mealNounList(meals)} altogether.
       </ThemedText>
 
       {fallback === undefined && (
@@ -422,7 +422,7 @@ function EmptyCartAtLock({
           style={[styles.actionButtonOutline, { borderColor: theme.divider }]}
           onPress={() => setDismissed(true)}>
           <ThemedText type="smallBold">
-            No {mealNoun(meal)} {mealMoment(meal)}
+            No {mealNounList(meals)} {mealMomentList(meals)}
           </ThemedText>
         </Pressable>
         {hasFallback && (
@@ -437,15 +437,15 @@ function EmptyCartAtLock({
   );
 }
 
-// One chip per group the user belongs to, labeled by its meal — switches the
-// whole screen's scope (design doc: "Meal switcher chips"). Hidden entirely
-// for single-group users so their screen looks unchanged.
+// One chip per group the user belongs to, labeled by its meal(s) — switches
+// the whole screen's scope (design doc: "Meal switcher chips"). Hidden
+// entirely for single-group users so their screen looks unchanged.
 function MealChips({
   groups,
   activeGroupId,
   onSelect,
 }: {
-  groups: { id: string; meal: MealType }[] | undefined;
+  groups: { id: string; meals: MealType[] }[] | undefined;
   activeGroupId: string | undefined;
   onSelect: (id: string) => void;
 }) {
@@ -464,7 +464,7 @@ function MealChips({
             <ThemedText
               type="smallBold"
               style={selected ? { color: theme.accentText } : { color: theme.textSecondary }}>
-              {mealLabel(group.meal)}
+              {mealLabelList(group.meals)}
             </ThemedText>
           </Pressable>
         );

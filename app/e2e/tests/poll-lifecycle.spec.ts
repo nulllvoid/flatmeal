@@ -28,7 +28,7 @@ test.describe('Poll lifecycle: locking the cart', () => {
     await ownerPage.waitForTimeout(3000);
     // "Dinner tonight" (lib/meal-copy.ts's mealTitle) — TEST_FLAT_ID's group
     // meal defaults to 'dinner' (groups-stub.ts has no per-flat DB column
-    // yet, so getMealType falls back to 'dinner' for any group with no
+    // yet, so getMealTypes falls back to ['dinner'] for any group with no
     // AsyncStorage entry, and this suite never sets one for TEST_FLAT_ID).
     await expect(ownerPage.getByText('Dinner tonight', { exact: false })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Palak Paneer', { exact: true })).toBeVisible();
@@ -90,7 +90,7 @@ test.describe('Poll lifecycle: locking the cart', () => {
     // message links exactly when they matter most.
     // "Dinner tonight" (lib/meal-copy.ts's mealTitle) — TEST_FLAT_ID's group
     // meal defaults to 'dinner' (groups-stub.ts has no per-flat DB column
-    // yet, so getMealType falls back to 'dinner' for any group with no
+    // yet, so getMealTypes falls back to ['dinner'] for any group with no
     // AsyncStorage entry, and this suite never sets one for TEST_FLAT_ID).
     await expect(ownerPage.getByText('Dinner tonight', { exact: false })).toBeVisible({ timeout: 15000 });
     await expect(ownerPage.getByText('Grocery list', { exact: true })).toBeVisible();

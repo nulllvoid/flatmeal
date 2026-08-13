@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { getMealType } from '@/lib/groups-stub';
+import { getMealTypes } from '@/lib/groups-stub';
 import { MEAL_ORDER } from '@/lib/meal-copy';
 import { supabase } from '@/lib/supabase';
 import type { MealType } from '@/types/domain';
@@ -9,7 +9,7 @@ import type { Session } from '@supabase/supabase-js';
 export interface GroupSummary {
   id: string;
   name: string;
-  meal: MealType;
+  meals: MealType[]; // non-empty — see types/domain.ts's MealType comment
 }
 
 // All groups the user belongs to (a group is a flats row — see
@@ -34,11 +34,14 @@ export function useMyGroups(session: Session | null | undefined) {
       flats.map(async (flat) => ({
         id: flat.id,
         name: flat.name,
-        meal: await getMealType(flat.id),
+        meals: await getMealTypes(flat.id),
       }))
     );
+    // Sort by each group's earliest meal in MEAL_ORDER (a multi-meal group
+    // sorts as if it were its earliest meal).
+    const earliestMealIndex = (meals: MealType[]) => Math.min(...meals.map((m) => MEAL_ORDER.indexOf(m)));
     summaries.sort(
-      (a, b) => MEAL_ORDER.indexOf(a.meal) - MEAL_ORDER.indexOf(b.meal) || a.name.localeCompare(b.name)
+      (a, b) => earliestMealIndex(a.meals) - earliestMealIndex(b.meals) || a.name.localeCompare(b.name)
     );
     setGroups(summaries);
   }, [session]);

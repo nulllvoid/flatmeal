@@ -15,6 +15,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { MEAL_ORDER, mealLabel } from '@/lib/meal-copy';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
+import type { MealType } from '@/types/domain';
 
 const DIET_TYPES = ['veg', 'egg', 'nonveg'] as const;
 const ALLERGY_OPTIONS = ['peanut', 'dairy', 'gluten', 'shellfish', 'soy'] as const;
@@ -164,7 +165,7 @@ export default function SettingsScreen() {
 // useFlatSettings(group.id) runs per card without hook-in-loop issues.
 function GroupCard({ group, userId }: { group: GroupSummary; userId: string | undefined }) {
   const router = useRouter();
-  const { groups, setGroupMeal, reloadGroups } = useActiveGroup();
+  const { groups, setGroupMeals, reloadGroups } = useActiveGroup();
   const { data, updateFlat, upsertCook, leaveFlat } = useFlatSettings(group.id);
   const theme = useTheme();
   const [confirmLeave, setConfirmLeave] = useState(false);
@@ -185,17 +186,27 @@ function GroupCard({ group, userId }: { group: GroupSummary; userId: string | un
     }
   }
 
+  // A group must keep at least one meal — tapping the only selected chip is
+  // a no-op rather than leaving the group meal-less.
+  function toggleMeal(meal: MealType) {
+    const next = group.meals.includes(meal)
+      ? group.meals.filter((m) => m !== meal)
+      : [...group.meals, meal];
+    if (next.length === 0) return;
+    void setGroupMeals(group.id, next);
+  }
+
   return (
     <ThemedView type="backgroundElement" style={styles.section}>
       <ThemedText type="smallBold">{flat.name}</ThemedText>
 
       <ThemedView style={styles.chipRow}>
         {MEAL_ORDER.map((meal) => {
-          const selected = group.meal === meal;
+          const selected = group.meals.includes(meal);
           return (
             <Pressable
               key={meal}
-              onPress={() => void setGroupMeal(group.id, meal)}
+              onPress={() => toggleMeal(meal)}
               style={[
                 styles.chip,
                 { borderColor: theme.divider },

@@ -2,14 +2,14 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 
 import { useMyGroups, type GroupSummary } from '@/hooks/use-my-groups';
 import { useSession } from '@/hooks/use-session';
-import { setMealType } from '@/lib/groups-stub';
+import { setMealTypes } from '@/lib/groups-stub';
 import type { MealType } from '@/types/domain';
 
 interface ActiveGroupValue {
   groups: GroupSummary[] | undefined; // undefined = loading
   activeGroup: GroupSummary | null;
   setActiveGroupId: (id: string) => void;
-  setGroupMeal: (id: string, meal: MealType) => Promise<void>;
+  setGroupMeals: (id: string, meals: MealType[]) => Promise<void>;
   reloadGroups: () => Promise<void>;
 }
 
@@ -25,9 +25,10 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
 
   const activeGroup = groups?.find((g) => g.id === activeGroupId) ?? groups?.[0] ?? null;
 
-  const setGroupMeal = useCallback(
-    async (id: string, meal: MealType) => {
-      await setMealType(id, meal);
+  const setGroupMeals = useCallback(
+    async (id: string, meals: MealType[]) => {
+      if (meals.length === 0) return; // a group must cover at least one meal
+      await setMealTypes(id, meals);
       await reload();
     },
     [reload]
@@ -35,7 +36,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
 
   return (
     <ActiveGroupContext.Provider
-      value={{ groups, activeGroup, setActiveGroupId, setGroupMeal, reloadGroups: reload }}>
+      value={{ groups, activeGroup, setActiveGroupId, setGroupMeals, reloadGroups: reload }}>
       {children}
     </ActiveGroupContext.Provider>
   );

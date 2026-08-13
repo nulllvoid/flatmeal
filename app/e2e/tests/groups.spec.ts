@@ -53,8 +53,8 @@ test.describe('Groups (multi-group switcher + leave)', () => {
     await rahulPage.getByRole('tab', { name: 'Today' }).click();
 
     // Both groups default to 'dinner' (groups-stub.ts has no per-flat DB
-    // column yet, so getMealType falls back to 'dinner' for any group with no
-    // AsyncStorage entry) — so two chips both read "Dinner" rather than two
+    // column yet, so getMealTypes falls back to ['dinner'] for any group with
+    // no AsyncStorage entry) — so two chips both read "Dinner" rather than two
     // distinct labels. useMyGroups loads asynchronously (fetch flat_members,
     // then a per-group AsyncStorage read for each), so wait for the visible
     // chip count to settle at 2 rather than asserting immediately —

@@ -9,14 +9,10 @@ import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useProfile } from '@/hooks/use-profile';
 import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
+import { DIET_ORDER, dietHelperText, dietLabel } from '@/lib/diet-copy';
 import type { Tables, TablesUpdate } from '@/types/database';
-import type { Allergen, DietType } from '@/types/domain';
+import type { Allergen } from '@/types/domain';
 
-const DIET_TYPES: { value: DietType; label: string }[] = [
-  { value: 'veg', label: 'Veg' },
-  { value: 'egg', label: 'Egg' },
-  { value: 'nonveg', label: 'Non-veg' },
-];
 const ALLERGY_OPTIONS: Allergen[] = ['peanut', 'dairy', 'gluten', 'shellfish', 'soy'];
 
 // Onboarding "about you": display name + dietary profile, before any
@@ -71,7 +67,7 @@ function ProfileForm({
           About you
         </ThemedText>
         <ThemedText type="title" style={styles.heading}>
-          what will you not eat?
+          what do you eat?
         </ThemedText>
         <ThemedText type="default" themeColor="textSecondary">
           This filters whatever lands in the cart, so be honest, not dramatic.
@@ -86,7 +82,7 @@ function ProfileForm({
         />
 
         <ThemedView style={styles.segRow}>
-          {DIET_TYPES.map(({ value, label }) => {
+          {DIET_ORDER.map((value) => {
             const selected = profile?.diet_type === value;
             return (
               <Pressable
@@ -98,12 +94,15 @@ function ProfileForm({
                   selected && { backgroundColor: theme.accent, borderColor: theme.accent },
                 ]}>
                 <ThemedText type="smallBold" style={selected ? { color: theme.background } : undefined}>
-                  {label}
+                  {dietLabel(value)}
                 </ThemedText>
               </Pressable>
             );
           })}
         </ThemedView>
+        <ThemedText type="small" themeColor="textSecondary">
+          {dietHelperText()}
+        </ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.jainRow}>
           <ThemedText type="default">Jain — no onion, no garlic</ThemedText>

@@ -12,12 +12,12 @@ import type { GroupSummary } from '@/hooks/use-my-groups';
 import { useProfile } from '@/hooks/use-profile';
 import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
+import { DIET_ORDER, dietHelperText, dietLabel } from '@/lib/diet-copy';
 import { MEAL_ORDER, mealLabel } from '@/lib/meal-copy';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/database';
 import type { MealType } from '@/types/domain';
 
-const DIET_TYPES = ['veg', 'egg', 'nonveg'] as const;
 const ALLERGY_OPTIONS = ['peanut', 'dairy', 'gluten', 'shellfish', 'soy'] as const;
 const COOK_LANGUAGES = [
   { value: 'hi', label: 'Hindi' },
@@ -66,7 +66,7 @@ export default function SettingsScreen() {
           <ThemedText type="smallBold">My dietary profile</ThemedText>
 
           <ThemedView style={styles.chipRow}>
-            {DIET_TYPES.map((type) => {
+            {DIET_ORDER.map((type) => {
               const selected = profile?.diet_type === type;
               return (
                 <Pressable
@@ -78,12 +78,15 @@ export default function SettingsScreen() {
                     selected && { backgroundColor: theme.accent, borderColor: theme.accent },
                   ]}>
                   <ThemedText type="small" style={selected ? { color: theme.background } : undefined}>
-                    {type}
+                    {dietLabel(type)}
                   </ThemedText>
                 </Pressable>
               );
             })}
           </ThemedView>
+          <ThemedText type="small" themeColor="textSecondary">
+            {dietHelperText()}
+          </ThemedText>
 
           <ThemedView style={styles.rowBetween}>
             <ThemedText type="default">Jain</ThemedText>

@@ -29,7 +29,7 @@ test.describe('Settings', () => {
 
   test('editing dietary profile persists to profiles table', async ({ priyaPage }) => {
     await priyaPage.getByRole('tab', { name: 'Settings' }).click();
-    await priyaPage.getByText('egg', { exact: true }).click();
+    await priyaPage.getByText('Eggetarian', { exact: true }).click();
     await priyaPage.getByText('peanut', { exact: true }).click();
     await priyaPage.waitForTimeout(1500);
 

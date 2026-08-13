@@ -227,12 +227,16 @@ function GroupCard({ group, userId }: { group: GroupSummary; userId: string | un
         Invite code: {flat.invite_code}
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        Poll: {flat.poll_open_time.slice(0, 5)} open · {flat.poll_close_time.slice(0, 5)} close ·{' '}
-        {flat.dispatch_time.slice(0, 5)} dispatch (IST)
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
         Members: {members.map((m) => m.displayName).join(', ')}
       </ThemedText>
+
+      <PollTimesSection
+        key={`${flat.poll_open_time}-${flat.poll_close_time}-${flat.dispatch_time}`}
+        pollOpenTime={flat.poll_open_time}
+        pollCloseTime={flat.poll_close_time}
+        dispatchTime={flat.dispatch_time}
+        onSave={(patch) => updateFlat(patch)}
+      />
 
       <LimitStepper
         label="Main courses per meal"
@@ -388,6 +392,108 @@ function CookSection({
   );
 }
 
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+function toHHMM(dbTime: string): string {
+  return dbTime.slice(0, 5);
+}
+
+// Mounted with a key derived from the current DB values (same pattern as
+// CookSection) so local draft state re-seeds only when the saved values
+// actually change underneath it, not on every parent re-render.
+function PollTimesSection({
+  pollOpenTime,
+  pollCloseTime,
+  dispatchTime,
+  onSave,
+}: {
+  pollOpenTime: string;
+  pollCloseTime: string;
+  dispatchTime: string;
+  onSave: (patch: { poll_open_time: string; poll_close_time: string; dispatch_time: string }) => void;
+}) {
+  const [openDraft, setOpenDraft] = useState(toHHMM(pollOpenTime));
+  const [closeDraft, setCloseDraft] = useState(toHHMM(pollCloseTime));
+  const [dispatchDraft, setDispatchDraft] = useState(toHHMM(dispatchTime));
+  const theme = useTheme();
+
+  const allValid = [openDraft, closeDraft, dispatchDraft].every((t) => TIME_RE.test(t));
+  // Same-day ordering only — the daily pipeline assumes open < close <
+  // dispatch within one IST day (create_poll/close_poll/dispatch_cook each
+  // act on whatever poll the prior stage already produced).
+  const inOrder = allValid && openDraft < closeDraft && closeDraft < dispatchDraft;
+  const dirty = openDraft !== toHHMM(pollOpenTime) || closeDraft !== toHHMM(pollCloseTime) || dispatchDraft !== toHHMM(dispatchTime);
+
+  function save() {
+    if (!inOrder) return;
+    onSave({ poll_open_time: `${openDraft}:00`, poll_close_time: `${closeDraft}:00`, dispatch_time: `${dispatchDraft}:00` });
+  }
+
+  return (
+    <ThemedView style={styles.cookSection}>
+      <ThemedText type="smallBold">Poll times (IST)</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary">
+        Suggestions open, cart locks, cook is messaged — in that order, each day.
+      </ThemedText>
+
+      <ThemedView style={styles.chipRow}>
+        <PollTimeField label="Suggestions open" value={openDraft} onChangeText={setOpenDraft} theme={theme} />
+        <PollTimeField label="Cart locks" value={closeDraft} onChangeText={setCloseDraft} theme={theme} />
+        <PollTimeField label="Cook messaged" value={dispatchDraft} onChangeText={setDispatchDraft} theme={theme} />
+      </ThemedView>
+
+      {allValid && !inOrder && (
+        <ThemedText type="small" style={{ color: theme.danger }}>
+          Each time must come after the one before it.
+        </ThemedText>
+      )}
+      {!allValid && (
+        <ThemedText type="small" style={{ color: theme.danger }}>
+          Use 24-hour HH:MM, e.g. 09:00.
+        </ThemedText>
+      )}
+
+      <Pressable
+        style={[styles.primaryButton, { backgroundColor: theme.accent }, (!dirty || !inOrder) && styles.disabled]}
+        onPress={save}
+        disabled={!dirty || !inOrder}>
+        <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
+          Save poll times
+        </ThemedText>
+      </Pressable>
+    </ThemedView>
+  );
+}
+
+function PollTimeField({
+  label,
+  value,
+  onChangeText,
+  theme,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  theme: ReturnType<typeof useTheme>;
+}) {
+  return (
+    <ThemedView style={styles.pollTimeField}>
+      <ThemedText type="small" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+      <TextInput
+        placeholder="HH:MM"
+        placeholderTextColor={theme.textSecondary}
+        value={value}
+        onChangeText={onChangeText}
+        maxLength={5}
+        keyboardType="numbers-and-punctuation"
+        style={[styles.input, styles.pollTimeInput, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.background }]}
+      />
+    </ThemedView>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   container: {
@@ -423,6 +529,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
+  },
+  pollTimeField: {
+    flex: 1,
+    minWidth: 90,
+    gap: Spacing.half,
+  },
+  pollTimeInput: {
+    textAlign: 'center',
   },
   chip: {
     paddingVertical: Spacing.half,

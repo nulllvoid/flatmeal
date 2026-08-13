@@ -16,7 +16,7 @@ import type { MealType } from '@/types/domain';
 // Creates a group: one cook, its own cart, covering one or more meals
 // (design doc). A group is a flats row under the hood — the meal(s) live in
 // the groups stub until a flats.meal_type column exists. Also reached from
-// Settings' "Add group".
+// Settings' "Create group" button.
 export default function CreateGroupScreen() {
   const router = useRouter();
   const { reloadGroups, setActiveGroupId } = useActiveGroup();

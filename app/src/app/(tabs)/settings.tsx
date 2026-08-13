@@ -133,11 +133,18 @@ export default function SettingsScreen() {
           <GroupCard key={group.id} group={group} userId={session?.user.id} />
         ))}
 
-        <Pressable
-          style={[styles.secondaryButton, { borderColor: theme.divider }]}
-          onPress={() => router.push('/onboarding/create-group')}>
-          <ThemedText type="smallBold">Add group</ThemedText>
-        </Pressable>
+        <ThemedView style={styles.addGroupRow}>
+          <Pressable
+            style={[styles.secondaryButton, styles.addGroupButton, { borderColor: theme.divider }]}
+            onPress={() => router.push('/onboarding/create-group')}>
+            <ThemedText type="smallBold">Create group</ThemedText>
+          </Pressable>
+          <Pressable
+            style={[styles.secondaryButton, styles.addGroupButton, { borderColor: theme.divider }]}
+            onPress={() => router.push('/onboarding/join-group')}>
+            <ThemedText type="smallBold">Join group</ThemedText>
+          </Pressable>
+        </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.section}>
           <ThemedText type="smallBold">Send feedback</ThemedText>
@@ -592,6 +599,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     borderWidth: 1.5,
     alignItems: 'center',
+  },
+  addGroupRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  addGroupButton: {
+    flex: 1,
   },
   disabled: {
     opacity: 0.45,

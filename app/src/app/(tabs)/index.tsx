@@ -51,6 +51,7 @@ export default function TodayScreen() {
   const { streak } = useStreak(flatId);
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState<RecipeKind>('main');
+  const [cappedRecipeId, setCappedRecipeId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [limitWarning, setLimitWarning] = useState<{ recipeId: string; recipeName: string; limit: number; count: number } | null>(
     null
@@ -101,6 +102,18 @@ export default function TodayScreen() {
     if (!limitWarning) return;
     await removeFromCart(limitWarning.recipeId);
     setLimitWarning(null);
+  }
+
+  // Headcount is a hard cap, not the soft dish-count limit above — a
+  // quantity above headcount means more portions than people to eat them.
+  // setQuantity already silently caps server-side; this just surfaces why a
+  // + tap did nothing instead of leaving the user guessing.
+  async function incrementQuantity(recipeId: string, nextQuantity: number) {
+    const result = await setQuantity(recipeId, nextQuantity);
+    if (result.capped) {
+      setCappedRecipeId(recipeId);
+      setTimeout(() => setCappedRecipeId((current) => (current === recipeId ? null : current)), 2500);
+    }
   }
 
   return (
@@ -250,8 +263,9 @@ export default function TodayScreen() {
                     line={line}
                     locked={false}
                     accentColor={theme.accent}
-                    onIncrement={() => setQuantity(line.recipeId, line.quantity + 1)}
-                    onDecrement={() => setQuantity(line.recipeId, line.quantity - 1)}
+                    showCappedMessage={cappedRecipeId === line.recipeId}
+                    onIncrement={() => void incrementQuantity(line.recipeId, line.quantity + 1)}
+                    onDecrement={() => void setQuantity(line.recipeId, line.quantity - 1)}
                     onRemove={() => removeFromCart(line.recipeId)}
                   />
                 ))}
@@ -583,6 +597,7 @@ function CartLineRow({
   line,
   locked,
   accentColor,
+  showCappedMessage,
   onIncrement,
   onDecrement,
   onRemove,
@@ -590,46 +605,56 @@ function CartLineRow({
   line: CartLineView;
   locked: boolean;
   accentColor: string;
+  showCappedMessage?: boolean;
   onIncrement?: () => void;
   onDecrement?: () => void;
   onRemove?: () => void;
 }) {
+  const theme = useTheme();
   return (
-    <ThemedView type="backgroundElement" style={styles.cartRow}>
-      <ThemedView style={styles.cartRowInfo}>
-        <ThemedText type="default" style={styles.optionName}>
-          {line.name}
-        </ThemedText>
-        {line.updatedByDisplayName && (
-          <ThemedText type="small" themeColor="textSecondary">
-            edited by {line.updatedByDisplayName}
+    <ThemedView type="backgroundElement" style={styles.cartRowContainer}>
+      <ThemedView style={styles.cartRow}>
+        <ThemedView style={styles.cartRowInfo}>
+          <ThemedText type="default" style={styles.optionName}>
+            {line.name}
           </ThemedText>
+          {line.updatedByDisplayName && (
+            <ThemedText type="small" themeColor="textSecondary">
+              edited by {line.updatedByDisplayName}
+            </ThemedText>
+          )}
+        </ThemedView>
+
+        {locked ? (
+          <ThemedText type="default">{line.quantity}</ThemedText>
+        ) : (
+          <ThemedView style={styles.stepper}>
+            <Pressable style={[styles.stepperButton, { backgroundColor: accentColor }]} onPress={onDecrement}>
+              <ThemedText type="smallBold" style={styles.stepperButtonText}>
+                −
+              </ThemedText>
+            </Pressable>
+            <ThemedText type="default" style={styles.stepperValue}>
+              {line.quantity}
+            </ThemedText>
+            <Pressable style={[styles.stepperButton, { backgroundColor: accentColor }]} onPress={onIncrement}>
+              <ThemedText type="smallBold" style={styles.stepperButtonText}>
+                +
+              </ThemedText>
+            </Pressable>
+            <Pressable style={styles.removeButton} onPress={onRemove}>
+              <ThemedText type="smallBold" themeColor="textSecondary">
+                Remove
+              </ThemedText>
+            </Pressable>
+          </ThemedView>
         )}
       </ThemedView>
 
-      {locked ? (
-        <ThemedText type="default">{line.quantity}</ThemedText>
-      ) : (
-        <ThemedView style={styles.stepper}>
-          <Pressable style={[styles.stepperButton, { backgroundColor: accentColor }]} onPress={onDecrement}>
-            <ThemedText type="smallBold" style={styles.stepperButtonText}>
-              −
-            </ThemedText>
-          </Pressable>
-          <ThemedText type="default" style={styles.stepperValue}>
-            {line.quantity}
-          </ThemedText>
-          <Pressable style={[styles.stepperButton, { backgroundColor: accentColor }]} onPress={onIncrement}>
-            <ThemedText type="smallBold" style={styles.stepperButtonText}>
-              +
-            </ThemedText>
-          </Pressable>
-          <Pressable style={styles.removeButton} onPress={onRemove}>
-            <ThemedText type="smallBold" themeColor="textSecondary">
-              Remove
-            </ThemedText>
-          </Pressable>
-        </ThemedView>
+      {showCappedMessage && (
+        <ThemedText type="small" style={{ color: theme.danger }}>
+          Already at headcount — nobody else to eat it.
+        </ThemedText>
       )}
     </ThemedView>
   );
@@ -726,12 +751,15 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     alignItems: 'center',
   },
+  cartRowContainer: {
+    padding: Spacing.three,
+    borderRadius: Radius.md,
+    gap: Spacing.one,
+  },
   cartRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.three,
-    borderRadius: Radius.md,
     gap: Spacing.two,
   },
   cartRowInfo: {

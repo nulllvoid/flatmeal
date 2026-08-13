@@ -294,12 +294,19 @@ export function useTodayCart(flatId: string | null | undefined, userId: string |
 
   // Cap re-fetched fresh each time (decision: a stale headcount cap would
   // let a quantity exceed the CURRENT headcount if someone toggled "I'm
-  // out" in the few seconds since last load).
-  async function setQuantity(recipeId: string, quantity: number) {
-    if (!cart || !userId) return;
-    if (quantity <= 0) return removeFromCart(recipeId);
+  // out" in the few seconds since last load). Returns whether the
+  // requested quantity got capped, so callers (the + stepper) can tell the
+  // user why a tap did nothing rather than failing silently.
+  async function setQuantity(recipeId: string, quantity: number): Promise<{ capped: boolean; headcount: number }> {
+    if (!cart || !userId) return { capped: false, headcount: 0 };
+    if (quantity <= 0) {
+      await removeFromCart(recipeId);
+      return { capped: false, headcount: 0 };
+    }
     const freshHeadcount = await fetchHeadcount(cart.pollDate);
-    const capped = Math.min(quantity, Math.max(freshHeadcount, 1));
+    const cap = Math.max(freshHeadcount, 1);
+    const capped = Math.min(quantity, cap);
+    const wasCapped = quantity > cap;
     const previousQty = cart.cartLines.find((line) => line.recipeId === recipeId)?.quantity;
     await supabase
       .from('cart_items')
@@ -315,6 +322,7 @@ export function useTodayCart(flatId: string | null | undefined, userId: string |
       });
     }
     await load();
+    return { capped: wasCapped, headcount: freshHeadcount };
   }
 
   async function removeFromCart(recipeId: string) {

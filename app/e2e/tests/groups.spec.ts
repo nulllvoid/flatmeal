@@ -1,12 +1,13 @@
 import { test, expect } from '../fixtures/auth';
 import { dbQuery } from '../fixtures/db';
-import { TEST_USERS } from '../fixtures/test-users';
+import { TEST_FLAT_ID, TEST_USERS } from '../fixtures/test-users';
 
 // Coverage for the multi-group refactor (docs/superpowers/plans/2026-08-11-groups-refactor.md)
-// that the rest of the suite doesn't touch: the Today tab's meal-chips group
-// switcher, and Settings' two-step "Leave group" confirm actually removing a
-// flat_members row (not just rendering, which settings.spec.ts already
-// covers for the single-group case).
+// that the rest of the suite doesn't touch: the Today tab's group-switcher
+// chips (labeled by each group's own name — see (tabs)/index.tsx's
+// MealChips), and Settings' two-step "Leave group" confirm actually
+// removing a flat_members row (not just rendering, which settings.spec.ts
+// already covers for the single-group case).
 //
 // Uses a second, disposable flat that only rahul belongs to, so leaving it
 // can't disturb TEST_FLAT_ID's shared fixture data used by every other spec.
@@ -16,6 +17,11 @@ function getSecondFlatId(): string {
   const rows = dbQuery(`select id from flats where name = '${SECOND_FLAT_NAME}';`) as { id: string }[];
   if (!rows[0]) throw new Error(`${SECOND_FLAT_NAME} not seeded — beforeAll should have created it`);
   return rows[0].id;
+}
+
+function getTestFlatName(): string {
+  const rows = dbQuery(`select name from flats where id = '${TEST_FLAT_ID}';`) as { name: string }[];
+  return rows[0].name;
 }
 
 test.describe('Groups (multi-group switcher + leave)', () => {
@@ -45,52 +51,57 @@ test.describe('Groups (multi-group switcher + leave)', () => {
     }
   });
 
-  test('meal chips appear for a multi-group user and switch the Today tab scope', async ({ rahulPage }) => {
-    // rahul belongs to TEST_FLAT_ID (seeded 'dinner' by default in groups-stub's
-    // AsyncStorage fallback) plus the second flat seeded above — two groups is
-    // exactly the threshold MealChips renders at (index.tsx: `groups.length <= 1`
-    // returns null).
+  test('group-switcher chips show each group\'s own name and switch the Today tab scope', async ({ rahulPage }) => {
+    // rahul belongs to TEST_FLAT_ID plus the second flat seeded above — two
+    // groups is exactly the threshold MealChips renders at (index.tsx:
+    // `groups.length <= 1` returns null).
+    const testFlatName = getTestFlatName();
+
     await rahulPage.getByRole('tab', { name: 'Today' }).click();
 
-    // Both groups default to 'dinner' (groups-stub.ts has no per-flat DB
-    // column yet, so getMealTypes falls back to ['dinner'] for any group with
-    // no AsyncStorage entry) — so two chips both read "Dinner" rather than two
-    // distinct labels. useMyGroups loads asynchronously (fetch flat_members,
-    // then a per-group AsyncStorage read for each), so wait for the visible
-    // chip count to settle at 2 rather than asserting immediately —
-    // MealChips renders null until `groups` has loaded and length > 1.
+    // useMyGroups loads asynchronously (fetch flat_members, then a
+    // per-group query), so wait for both chips to actually appear rather
+    // than asserting immediately — MealChips renders null until `groups`
+    // has loaded and length > 1.
     //
     // `getByText` alone can also pick up detached/zero-size duplicate nodes
     // Expo Router leaves behind across a screen transition, so scope to
     // `:visible` — confirmed via manual DOM probing that the extra matches
     // have a 0x0 bounding rect while the real chips don't.
-    const dinnerChips = rahulPage.getByText('Dinner', { exact: true }).locator('visible=true');
-    await expect(dinnerChips).toHaveCount(2, { timeout: 10_000 });
-    await expect(dinnerChips.first()).toBeVisible();
+    const testFlatChip = rahulPage.getByText(testFlatName, { exact: true }).locator('visible=true');
+    const secondFlatChip = rahulPage.getByText(SECOND_FLAT_NAME, { exact: true }).locator('visible=true');
+    await expect(testFlatChip).toBeVisible({ timeout: 10_000 });
+    await expect(secondFlatChip).toBeVisible({ timeout: 10_000 });
 
     // Switching chips re-scopes the screen to the other group's poll state
     // without a full reload — clicking the second chip must not throw/blank
-    // the screen, and the chip row must still render both options afterward.
+    // the screen, and both chips must still render afterward.
     // force: true — Expo Router web renders an invisible full-width
     // role=tablist hit-area over this viewport that intercepts pointer
     // events in Playwright's headless browser; not reproducible on a real
     // touch device, so bypassing Playwright's actionability's hit-test here
     // matches how a real tap on native/mobile web actually behaves.
-    await dinnerChips.nth(1).click({ force: true });
-    await expect(dinnerChips).toHaveCount(2, { timeout: 10_000 });
+    await secondFlatChip.click({ force: true });
+    await expect(testFlatChip).toBeVisible({ timeout: 10_000 });
+    await expect(secondFlatChip).toBeVisible({ timeout: 10_000 });
   });
 
   test('leaving a non-last group removes the flat_members row and keeps the other group', async ({ rahulPage }) => {
     const flatId = getSecondFlatId();
 
     await rahulPage.getByRole('tab', { name: 'Settings' }).click();
-    await expect(rahulPage.getByText(SECOND_FLAT_NAME, { exact: true })).toBeVisible();
+    // Scoped to the Settings tabpanel — Expo Router keeps the Today tab's
+    // group-switcher chips mounted in the background (getByLabel('Today')),
+    // and since chips are now labeled by group name too (same as this
+    // group's Settings card), an unscoped locator hits both.
+    const settingsPanel = rahulPage.getByLabel('Settings', { exact: true });
+    await expect(settingsPanel.getByText(SECOND_FLAT_NAME, { exact: true })).toBeVisible();
 
     // Smallest ancestor div that contains both the group's own name and its
     // own "Leave group" control — RN-web flattens Views into several nested
     // divs, so a fixed number of `..` hops is fragile; walk up to the first
     // ancestor that also contains the sibling text instead.
-    const secondGroupCard = rahulPage
+    const secondGroupCard = settingsPanel
       .locator('div')
       .filter({ hasText: SECOND_FLAT_NAME })
       .filter({ hasText: 'Leave group' })

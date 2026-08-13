@@ -11,7 +11,7 @@ import { useSession } from '@/hooks/use-session';
 import { useStreak } from '@/hooks/use-streak';
 import { useTheme } from '@/hooks/use-theme';
 import { useTodayCart } from '@/hooks/use-today-cart';
-import { mealLabelList, mealMomentList, mealNounList, mealTitleList } from '@/lib/meal-copy';
+import { mealMomentList, mealNounList, mealTitleList } from '@/lib/meal-copy';
 import type { ActivityEntry, CartLineView, MealType, RecipeKind, SuggestionView } from '@/types/domain';
 
 const TABS: RecipeKind[] = ['main', 'accompaniment', 'side'];
@@ -437,15 +437,17 @@ function EmptyCartAtLock({
   );
 }
 
-// One chip per group the user belongs to, labeled by its meal(s) — switches
-// the whole screen's scope (design doc: "Meal switcher chips"). Hidden
-// entirely for single-group users so their screen looks unchanged.
+// One chip per group the user belongs to, labeled by the group's own name —
+// switches the whole screen's scope to that group (design doc: "Meal
+// switcher chips"). Hidden entirely for single-group users so their screen
+// looks unchanged. Fully dynamic: whatever groups the user has joined,
+// exactly that many chips render, in whatever order useMyGroups sorts them.
 function MealChips({
   groups,
   activeGroupId,
   onSelect,
 }: {
-  groups: { id: string; meals: MealType[] }[] | undefined;
+  groups: { id: string; name: string }[] | undefined;
   activeGroupId: string | undefined;
   onSelect: (id: string) => void;
 }) {
@@ -464,7 +466,7 @@ function MealChips({
             <ThemedText
               type="smallBold"
               style={selected ? { color: theme.accentText } : { color: theme.textSecondary }}>
-              {mealLabelList(group.meals)}
+              {group.name}
             </ThemedText>
           </Pressable>
         );

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useActiveGroup } from '@/contexts/active-group';
 import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 export default function OnboardingEmailScreen() {
   const router = useRouter();
   const session = useSession();
+  const { groups } = useActiveGroup();
   const [email, setEmail] = useState('');
   const [linkSent, setLinkSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,11 +43,19 @@ export default function OnboardingEmailScreen() {
 
   // On web, clicking the magic link redirects back to this same page with
   // the session already established (detectSessionInUrl) — pick that up
-  // and continue into profile creation once it lands.
+  // and continue into profile creation once it lands. But a returning user
+  // who lands here directly (stale bookmark, back-navigation, deep link)
+  // with a session AND at least one group already shouldn't be routed
+  // through onboarding at all — send them straight to the app, same as the
+  // root `/` redirect already does.
   useEffect(() => {
-    if (!session) return;
+    if (!session || groups === undefined) return;
+    if (groups.length > 0) {
+      router.replace('/(tabs)');
+      return;
+    }
     void Promise.resolve().then(() => ensureProfileThenContinue(session.user.id, session.user.email ?? ''));
-  }, [session, ensureProfileThenContinue]);
+  }, [session, groups, ensureProfileThenContinue, router]);
 
   async function sendMagicLink() {
     setError(null);

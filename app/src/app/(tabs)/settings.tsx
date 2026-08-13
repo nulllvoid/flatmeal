@@ -1,3 +1,4 @@
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, TextInput } from 'react-native';
@@ -179,6 +180,11 @@ function GroupCard({ group, userId }: { group: GroupSummary; userId: string | un
   const { data, updateFlat, upsertCook, leaveFlat } = useFlatSettings(group.id);
   const theme = useTheme();
   const [confirmLeave, setConfirmLeave] = useState(false);
+  // Lives here, not inside PollTimesSection: a successful save changes
+  // flat.poll_*_time, which changes PollTimesSection's own key prop
+  // (below), remounting it — a status flag stored in that child would be
+  // wiped by the remount before it ever renders.
+  const [pollTimesStatus, setPollTimesStatus] = useState<SaveStatus>('idle');
 
   if (!data) return null; // loading
 
@@ -204,6 +210,13 @@ function GroupCard({ group, userId }: { group: GroupSummary; userId: string | un
       : [...group.meals, meal];
     if (next.length === 0) return;
     void setGroupMeals(group.id, next);
+  }
+
+  async function savePollTimes(patch: { poll_open_time: string; poll_close_time: string; dispatch_time: string }) {
+    setPollTimesStatus('saving');
+    const result = await updateFlat(patch);
+    setPollTimesStatus(result?.error ? 'error' : 'saved');
+    setTimeout(() => setPollTimesStatus('idle'), 3000);
   }
 
   return (
@@ -242,7 +255,8 @@ function GroupCard({ group, userId }: { group: GroupSummary; userId: string | un
         pollOpenTime={flat.poll_open_time}
         pollCloseTime={flat.poll_close_time}
         dispatchTime={flat.dispatch_time}
-        onSave={(patch) => updateFlat(patch)}
+        status={pollTimesStatus}
+        onSave={savePollTimes}
       />
 
       <LimitStepper
@@ -408,15 +422,19 @@ function toHHMM(dbTime: string): string {
 // Mounted with a key derived from the current DB values (same pattern as
 // CookSection) so local draft state re-seeds only when the saved values
 // actually change underneath it, not on every parent re-render.
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 function PollTimesSection({
   pollOpenTime,
   pollCloseTime,
   dispatchTime,
+  status,
   onSave,
 }: {
   pollOpenTime: string;
   pollCloseTime: string;
   dispatchTime: string;
+  status: SaveStatus;
   onSave: (patch: { poll_open_time: string; poll_close_time: string; dispatch_time: string }) => void;
 }) {
   const [openDraft, setOpenDraft] = useState(toHHMM(pollOpenTime));
@@ -461,15 +479,40 @@ function PollTimesSection({
       )}
 
       <Pressable
-        style={[styles.primaryButton, { backgroundColor: theme.accent }, (!dirty || !inOrder) && styles.disabled]}
+        style={[styles.primaryButton, { backgroundColor: theme.accent }, (!dirty || !inOrder || status === 'saving') && styles.disabled]}
         onPress={save}
-        disabled={!dirty || !inOrder}>
+        disabled={!dirty || !inOrder || status === 'saving'}>
         <ThemedText type="smallBold" style={[styles.primaryButtonText, { color: theme.background }]}>
-          Save poll times
+          {status === 'saving' ? 'Saving…' : 'Save poll times'}
         </ThemedText>
       </Pressable>
+
+      {status === 'saved' && (
+        <ThemedText type="small" style={{ color: theme.accent }}>
+          Saved.
+        </ThemedText>
+      )}
+      {status === 'error' && (
+        <ThemedText type="small" style={{ color: theme.danger }}>
+          Couldn&apos;t save — check your connection and try again.
+        </ThemedText>
+      )}
     </ThemedView>
   );
+}
+
+// HH:MM string -> a Date carrying just that time (today's date, seconds
+// zeroed) — the shape @react-native-community/datetimepicker's `value` prop
+// needs. The date part is never read back out, only hours/minutes.
+function hhmmToDate(hhmm: string): Date {
+  const [h, m] = hhmm.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+function dateToHHMM(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 function PollTimeField({
@@ -483,20 +526,34 @@ function PollTimeField({
   onChangeText: (text: string) => void;
   theme: ReturnType<typeof useTheme>;
 }) {
+  // DateTimePickerAndroid.open() is the documented imperative API. `onChange`
+  // is @deprecated in this version (even passed to the imperative API, it
+  // still fires the library's own console warning) — onValueChange is its
+  // replacement and is what actually reports the picked time back. This app
+  // is Android-first for the pilot (CLAUDE.md), so no iOS fallback is needed.
+  function openPicker() {
+    DateTimePickerAndroid.open({
+      value: TIME_RE.test(value) ? hhmmToDate(value) : new Date(),
+      mode: 'time',
+      is24Hour: true,
+      onValueChange: (_event, date) => {
+        onChangeText(dateToHHMM(date));
+      },
+    });
+  }
+
   return (
     <ThemedView style={styles.pollTimeField}>
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>
-      <TextInput
-        placeholder="HH:MM"
-        placeholderTextColor={theme.textSecondary}
-        value={value}
-        onChangeText={onChangeText}
-        maxLength={5}
-        keyboardType="numbers-and-punctuation"
-        style={[styles.input, styles.pollTimeInput, { borderColor: theme.divider, color: theme.text, backgroundColor: theme.background }]}
-      />
+      <Pressable
+        onPress={openPicker}
+        style={[styles.input, styles.pollTimeInput, { borderColor: theme.divider, backgroundColor: theme.background }]}>
+        <ThemedText type="default" style={{ color: theme.text }}>
+          {TIME_RE.test(value) ? value : '--:--'}
+        </ThemedText>
+      </Pressable>
     </ThemedView>
   );
 }
@@ -543,7 +600,7 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   pollTimeInput: {
-    textAlign: 'center',
+    alignItems: 'center',
   },
   chip: {
     paddingVertical: Spacing.half,

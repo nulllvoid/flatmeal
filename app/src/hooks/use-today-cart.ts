@@ -189,36 +189,64 @@ export function useTodayCart(flatId: string | null | undefined, userId: string |
 
   useEffect(() => {
     if (!cart) return;
-    const channel = supabase
-      .channel(`cart:${cart.pollId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'cart_items', filter: `poll_id=eq.${cart.pollId}` },
-        () => {
-          load();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'activity_log', filter: `poll_id=eq.${cart.pollId}` },
-        () => {
-          load();
-        }
-      )
-      // Poll status changes (close, dispatch) — without this, a client that
-      // loaded the cart while it was still 'open' never learns it locked
-      // until something else triggers a refetch.
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'daily_polls', filter: `id=eq.${cart.pollId}` },
-        () => {
-          load();
-        }
-      )
-      .subscribe();
+
+    // supabase.channel(topic) returns the SAME already-subscribed instance
+    // if a channel with this topic is still registered client-side —
+    // calling .on() on that reused instance throws "cannot add
+    // postgres_changes callbacks ... after subscribe()". Removal
+    // (removeChannel/unsubscribe) is genuinely async under the hood (it
+    // waits on the socket to actually close before deregistering), so a
+    // fast enough re-run of this effect (Fast Refresh, or cart flickering
+    // null->object while flatId/userId re-resolve) can start before the
+    // previous run's channel has finished tearing down. Explicitly await
+    // removal of any stale channel for this exact topic before creating the
+    // replacement, and bail out via `cancelled` if this effect was torn
+    // down again in the meantime (StrictMode-style double-invoke, or the
+    // pollId changing again mid-teardown).
+    const pollId = cart.pollId;
+    const topic = `cart:${pollId}`;
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    async function setup() {
+      const stale = supabase.getChannels().find((c) => c.topic === `realtime:${topic}`);
+      if (stale) await supabase.removeChannel(stale);
+      if (cancelled) return;
+
+      channel = supabase
+        .channel(topic)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'cart_items', filter: `poll_id=eq.${pollId}` },
+          () => {
+            load();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'activity_log', filter: `poll_id=eq.${pollId}` },
+          () => {
+            load();
+          }
+        )
+        // Poll status changes (close, dispatch) — without this, a client
+        // that loaded the cart while it was still 'open' never learns it
+        // locked until something else triggers a refetch.
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'daily_polls', filter: `id=eq.${pollId}` },
+          () => {
+            load();
+          }
+        )
+        .subscribe();
+    }
+
+    void setup();
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- resubscribing on every `load` identity change would tear down/recreate the channel needlessly; cart.pollId is the only thing that should retrigger this.
   }, [cart?.pollId]);
